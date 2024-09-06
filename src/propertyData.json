@@ -1,0 +1,219 @@
+{
+  "property_url": "https://www.onthemarket.com/details/15420358/",
+  "stages": {
+    "initial_categorization": [
+      { "category": "internal", "details": { "room_type": "living room" } },
+      { "category": "internal", "details": { "room_type": "stairway" } },
+      { "category": "internal", "details": { "room_type": "stairway" } },
+      { "category": "internal", "details": { "room_type": "bathroom" } },
+      { "category": "external", "details": { "exterior_type": "backyard" } },
+      { "category": "internal", "details": { "room_type": "attic bedroom" } },
+      {
+        "category": "others",
+        "details": { "others": "energy efficiency rating" }
+      },
+      { "category": "external", "details": { "exterior_type": "patio" } },
+      { "category": "internal", "details": { "room_type": "guest bedroom" } },
+      { "category": "internal", "details": { "room_type": "kids' bedroom" } },
+      { "category": "internal", "details": { "room_type": "teen bedroom" } },
+      { "category": "external", "details": { "exterior_type": "driveway" } },
+      { "category": "internal", "details": { "room_type": "guest bathroom" } },
+      { "category": "internal", "details": { "room_type": "kitchen" } },
+      { "category": "external", "details": { "exterior_type": "backyard" } },
+      { "category": "internal", "details": { "room_type": "entryway" } },
+      { "category": "internal", "details": { "room_type": "kids' bedroom" } },
+      { "category": "internal", "details": { "room_type": "living room" } },
+      { "category": "internal", "details": { "room_type": "music room" } },
+      { "category": "internal", "details": { "room_type": "bathroom" } },
+      { "category": "internal", "details": { "room_type": "home office" } },
+      { "category": "internal", "details": { "room_type": "bedroom" } },
+      { "category": "internal", "details": { "room_type": "living room" } },
+      { "category": "internal", "details": { "room_type": "dining room" } },
+      { "category": "internal", "details": { "room_type": "living room" } },
+      { "category": "internal", "details": { "room_type": "stairway" } },
+      { "category": "internal", "details": { "room_type": "bathroom" } },
+      { "category": "external", "details": { "exterior_type": "backyard" } },
+      { "category": "external", "details": { "exterior_type": "backyard" } },
+      { "category": "internal", "details": { "room_type": "kitchen" } }
+    ],
+    "grouped_images": {
+      "internal": {
+        "living_space": [17, 18, 33, 34, 36, 38, 39, 40, 41, 16],
+        "bathroom_space": [19, 35, 42, 28],
+        "front_garden_space": [31],
+        "bedroom_space": [32, 37, 21, 24, 25, 26],
+        "kitchen_space": [45, 29]
+      },
+      "external": {
+        "back_garden_space": [20, 43, 44, 23, 30],
+        "front_garden_space": [27]
+      },
+      "others": { "others": [22] }
+    },
+    "merged_images": {
+      "internal_living_space": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_7_EuvMTov.jpg",
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_8_IMZxp5q.jpg",
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_9_SXv7EzG.jpg"
+      ],
+      "internal_bathroom_space": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_10_RQF7eNd.jpg"
+      ],
+      "external_back_garden_space": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_11_pmoCANi.jpg",
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_12_FoqcNdM.jpg"
+      ],
+      "internal_front_garden_space": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_13_vlTAsXM.jpg"
+      ],
+      "internal_bedroom_space": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_14_kE0n7a7.jpg",
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_15_HAWVXLz.jpg"
+      ],
+      "internal_kitchen_space": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_16_2dl2bgu.jpg"
+      ],
+      "others_others": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_17_l9GS88X.jpg"
+      ],
+      "external_front_garden_space": [
+        "https://propertyanalysisstorage.s3.amazonaws.com/media/merged_property_images/merged_image_18_OpUKb63.jpg"
+      ]
+    },
+    "detailed_analysis": {
+      "internal_living_space": [
+        {
+          "image_number": 1,
+          "condition_label": "above average",
+          "reasoning": "This space shows good quality finishes with a neat and well-maintained appearance. The hallway is clean, with modern lighting and a neutral color scheme. It appears to have been recently updated and maintained well, but does not have the high-end, luxurious finishes to be considered 'Excellent.'",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_20_tyuxWCj.jpg",
+          "image_id": 36
+        },
+        {
+          "image_number": 2,
+          "condition_label": "above average",
+          "reasoning": "This room features attractive decor and furnishings, with evidence of regular maintenance. The furniture is stylish, and the overall presentation is clean and well-organized with cohesive design elements. The space lacks any extraordinary, high-end features that would place it in the 'Excellent' category but is still of a good standard.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_22_vAKoer6.jpg",
+          "image_id": 38
+        }
+      ],
+      "internal_bathroom_space": [
+        {
+          "image_number": 1,
+          "condition_label": "above_average",
+          "reasoning": "Good quality finishes and fixtures with neat, well-maintained furniture and decor. The room is clean, well-presented, and has an attractive layout.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_3_H8KRms2.jpg",
+          "image_id": 19
+        },
+        {
+          "image_number": 2,
+          "condition_label": "excellent",
+          "reasoning": "High-end, modern finishes and fixtures with a stylish, contemporary design. Impeccable staging and presentation, matching the criteria for an 'excellent' rating.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_19_3YVzuKE.jpg",
+          "image_id": 35
+        },
+        {
+          "image_number": 3,
+          "condition_label": "above_average",
+          "reasoning": "Good quality finishes and well-maintained fixtures. The design is cohesive and the bathroom is neat with a pleasant aesthetic.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_26.jpg",
+          "image_id": 42
+        },
+        {
+          "image_number": 4,
+          "condition_label": "excellent",
+          "reasoning": "Modern and high-end finishes with a stylish presentation. The space is clean and well-organized, fitting the criteria for an 'excellent' rating.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_12_oCTWhJc.jpg",
+          "image_id": 28
+        }
+      ],
+      "external_back_garden_space": [
+        {
+          "image_number": 1,
+          "condition_label": "excellent",
+          "reasoning": "The outdoor space shows professional landscaping with well-maintained plants and a cohesive design. It includes desirable features like contemporary outdoor furniture, a well-maintained lawn, clean hardscaping, and an overall impeccable presentation, mirroring a show home standard.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_4_RKvIHEF.jpg",
+          "image_id": 20
+        },
+        {
+          "image_number": 2,
+          "condition_label": "excellent",
+          "reasoning": "The space features high-quality hardscaping and furniture, lush greenery, and well-maintained plants. It also has a cohesive design and a polished look, fitting the criteria for 'Excellent'.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_28.jpg",
+          "image_id": 44
+        },
+        {
+          "image_number": 3,
+          "condition_label": "excellent",
+          "reasoning": "The area features a cohesive layout with stylish furniture, well-trimmed plants, and a polished, clean aesthetic. The hardscaping is of high quality, and the space is staged professionally.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_14_2wkwgEf.jpg",
+          "image_id": 30
+        },
+        {
+          "image_number": 4,
+          "condition_label": "excellent",
+          "reasoning": "The outdoor setting is complete with high-end finishes, modern and stylish furniture, and an immaculately maintained lawn. The presentation and cohesive design elements are akin to a show home, fitting the 'Excellent' criteria.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_27.jpg",
+          "image_id": 43
+        }
+      ],
+      "internal_bedroom_space": [
+        {
+          "image_number": 1,
+          "condition_label": "above_average",
+          "reasoning": "The room is well-maintained with modern furniture and a cohesive, pleasant color scheme. The space is clear and not cluttered, featuring good natural light and a clean carpet. Decorations and toys are neatly arranged, providing an overall welcoming appearance.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_5_zJRKTKl.jpg",
+          "image_id": 21
+        },
+        {
+          "image_number": 2,
+          "condition_label": "below_average",
+          "reasoning": "The room shows signs of wear, especially on the walls with visible marks and an outdated wallpaper pattern. The furniture appears moderately maintained and the space lacks a cohesive design. The presence of clutter and the unevenly laid out items contribute to a less appealing, somewhat untidy look.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_16_Iai1CPU.jpg",
+          "image_id": 32
+        }
+      ],
+      "internal_kitchen_space": [
+        {
+          "image_number": 1,
+          "condition_label": "excellent",
+          "reasoning": "The kitchen is modern and well-lit with high-end finishes and fixtures. It features stylish, contemporary furniture and decor along with a cohesive design and impeccable presentation.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_29.jpg",
+          "image_id": 45
+        },
+        {
+          "image_number": 2,
+          "condition_label": "above_average",
+          "reasoning": "This kitchen has good quality finishes and fixtures, and is well-maintained. The layout is pleasant and the room is clean and well-presented, but it does not quite reach the high standard of a show home as seen in the 'excellent' examples.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_13_or0mTsr.jpg",
+          "image_id": 29
+        }
+      ],
+      "external_front_garden_space": [
+        {
+          "image_number": 1,
+          "condition_label": "above_average",
+          "reasoning": "The exterior appears well-maintained with a neat driveway and a presentable facade. The landscaping is tidy with no visible excessive weeds or overgrowth, though it lacks the professional landscaping and variety of plants characteristic of an 'excellent' classification.",
+          "image_url": "https://propertyanalysisstorage.s3.amazonaws.com/media/property_images/property_2_image_11_jKOicJr.jpg",
+          "image_id": 27
+        }
+      ]
+    },
+    "overall_condition": {
+      "overall_condition_label": "Excellent",
+      "average_score": 4.86,
+      "distribution": {
+        "above average": 0.14285714285714285,
+        "excellent": 0.8571428571428571
+      },
+      "condition_distribution": {
+        "above average": 14.285714285714285,
+        "excellent": 85.71428571428571
+      },
+      "areas_of_concern": 0,
+      "confidence": "Medium",
+      "explanation": "\nDetailed calculation of overall property condition:\n\n1. Total number of valid assessments: 14\n\n2. Condition counts:\n   - Above average: 2\n   - Excellent: 12\n\n3. Calculation of average score:\n   - Each condition is assigned a value: Excellent (5), Above Average (4), Average (3), Below Average (2), Poor (1)\n   - Total value: 68 (sum of all condition values)\n   - Average score: 68 / 14 = 4.86\n\n4. Distribution of conditions:\n   - Above average: 14.29%\n   - Excellent: 85.71%\n\n5. Areas of concern (conditions below average): 0\n\n6. Overall rating determination:\n   - Excellent: 4.5 and above\n   - Good: 3.5 to 4.49\n   - Average: 2.5 to 3.49\n   - Below Average: 1.5 to 2.49\n   - Poor: Below 1.5\n\n   Based on the average score of 4.86, the overall rating is: Excellent\n\n7. Confidence level:\n   - High: More than 20 assessments\n   - Medium: 11 to 20 assessments\n   - Low: 10 or fewer assessments\n\n   Based on 14 assessments, the confidence level is: Medium\n"
+    }
+  },
+  "Image_Analysis": {}
+}

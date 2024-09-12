@@ -22,7 +22,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const location = useLocation();
 
   const connectToWebSocket = () => {
-    const websocketUrl = `ws://localhost:8000/ws/analysis-progress/`;
+    // const websocketUrl = `ws://localhost:8000/ws/analysis-progress/`;
+    const websocketUrl = `ws://3.238.8.99:8000/ws/analysis-progress/`;
     connectWebSocket(websocketUrl)
       .then(() => {
         setIsConnected(true);

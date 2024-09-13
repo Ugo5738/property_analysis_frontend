@@ -205,7 +205,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
       .flat()
       .map((item: any) => item.image_url)
       .filter(Boolean);
-  
+    
     return (
       <>
         <h1 className="text-xl font-bold mb-4">
@@ -288,7 +288,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
           </TabsContent>
   
           <TabsContent value="detailed">
-            <div className="space-y-4">
+            <div className="space-y-8">
               {Object.entries(data.stages.detailed_analysis ?? {}).map(
                 ([key, analysis]) => (
                   <Card key={key}>
@@ -300,15 +300,15 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {(analysis as any[]).map((item) => (
-                          <div key={item.image_id} className="flex items-start space-x-4">
+                          <div key={item.image_id} className="flex flex-col items-start space-y-2">
                             <Dialog>
                               <DialogTrigger>
                                 <img
                                   src={item.image_url}
                                   alt={`Image ${item.image_number}`}
-                                  className="w-32 h-32 object-cover rounded cursor-pointer"
+                                  className="w-full h-48 object-cover rounded cursor-pointer"
                                   onClick={() => setSelectedImage(item.image_url)}
                                 />
                               </DialogTrigger>
@@ -324,7 +324,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                               <p className="text-sm font-semibold">
                                 Image {item.image_number}: {item.condition_label}
                               </p>
-                              <p>{item.reasoning}</p>
+                              <p className="text-sm">{item.reasoning}</p>
                             </div>
                           </div>
                         ))}

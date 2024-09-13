@@ -165,7 +165,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
         // Retry after a delay
         setTimeout(fetchAnalysisResults, 5000);
       } else if (response.data) {
-        setData(response.data);
+        setData(response.data.overall_analysis);
         setLoading(false);
       } else {
         console.error("No data received from the server");
@@ -219,7 +219,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                 <img
                   src={imageUrl}
                   alt={`Property image ${index + 1}`}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-32 object-cover"
                 />
               </CarouselItem>
             ))}
@@ -300,15 +300,15 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {(analysis as any[]).map((item) => (
-                          <div key={item.image_id} className="flex flex-col items-center">
+                          <div key={item.image_id} className="flex items-start space-x-4">
                             <Dialog>
                               <DialogTrigger>
                                 <img
                                   src={item.image_url}
                                   alt={`Image ${item.image_number}`}
-                                  className="w-24 h-24 object-cover rounded cursor-pointer"
+                                  className="w-32 h-32 object-cover rounded cursor-pointer"
                                   onClick={() => setSelectedImage(item.image_url)}
                                 />
                               </DialogTrigger>
@@ -320,11 +320,11 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                                 />
                               </DialogContent>
                             </Dialog>
-                            <div className="mt-2 text-center">
+                            <div>
                               <p className="text-sm font-semibold">
                                 Image {item.image_number}: {item.condition_label}
                               </p>
-                              <p className="text-xs">{item.reasoning}</p>
+                              <p>{item.reasoning}</p>
                             </div>
                           </div>
                         ))}

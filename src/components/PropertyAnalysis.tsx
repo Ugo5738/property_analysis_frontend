@@ -219,7 +219,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                 <img
                   src={imageUrl}
                   alt={`Property image ${index + 1}`}
-                  className="w-full h-32 object-cover"
+                  className="w-full h-48 object-cover"
                 />
               </CarouselItem>
             ))}
@@ -302,13 +302,13 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {(analysis as any[]).map((item) => (
-                          <div key={item.image_id} className="flex flex-col items-start space-y-2">
+                          <div key={item.image_id} className="flex items-start space-y-2">
                             <Dialog>
                               <DialogTrigger>
                                 <img
                                   src={item.image_url}
                                   alt={`Image ${item.image_number}`}
-                                  className="w-full h-48 object-cover rounded cursor-pointer"
+                                  className="w-24 h-24 object-cover rounded cursor-pointer"
                                   onClick={() => setSelectedImage(item.image_url)}
                                 />
                               </DialogTrigger>
@@ -316,12 +316,12 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
                                 <img
                                   src={selectedImage || ''}
                                   alt="Full size image"
-                                  className="w-full h-auto"
+                                  className="w-full h-auto max-h-[80vh] object-contain"
                                 />
                               </DialogContent>
                             </Dialog>
-                            <div>
-                              <p className="text-sm font-semibold">
+                            <div className="flex-grow">
+                              <p className="text-sm font-semibold mb-1">
                                 Image {item.image_number}: {item.condition_label}
                               </p>
                               <p className="text-sm">{item.reasoning}</p>

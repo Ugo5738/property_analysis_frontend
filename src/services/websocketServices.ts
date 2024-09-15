@@ -14,8 +14,10 @@ export const connectWebSocket = (url: string): Promise<void> => {
       resolve();
     };
 
-    socket.onclose = () => {
-      // console.log('WebSocket disconnected');
+    socket.onclose = (event) => {
+      console.log('WebSocket disconnected');
+      console.log("WebSocket closed:", event.code, event.reason);
+      reject(new Error(`WebSocket closed: ${event.code} ${event.reason}`));
       socket = null;
       connectedPromise = null;
     };

@@ -142,7 +142,8 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
     setDataLoading(true);
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
-      setData(response.data);
+      console.log("Fetched property data:", response.data);
+      setData(response.data.overall_analysis);
     } catch (error) {
       console.error("Error fetching property data:", error);
       setError("Failed to fetch property data. Please try again.");
@@ -411,6 +412,12 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
         <div className="mb-4">
           <p>Fetching analysis results... Status: {analysisStatus}</p>
           <progress value={analysisProgress} max="100" className="w-full" />
+        </div>
+      )}
+
+      {dataLoading && (
+        <div className="mb-4">
+          <p>Loading property data...</p>
         </div>
       )}
 

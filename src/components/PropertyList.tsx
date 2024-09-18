@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -89,7 +89,11 @@ const PropertyList: React.FC = () => {
             <TableBody>
               {properties.map((property) => (
                 <TableRow key={property.id}>
-                  <TableCell>{property.url}</TableCell>
+                  <TableCell>
+                    <Link to={`/property-analysis/${property.id}`}>
+                      {property.url}
+                    </Link>
+                  </TableCell>
                   <TableCell>{new Date(property.created_at).toLocaleString()}</TableCell>
                   <TableCell>{new Date(property.updated_at).toLocaleString()}</TableCell>
                   <TableCell>

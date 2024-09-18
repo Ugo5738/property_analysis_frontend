@@ -15,6 +15,7 @@ function App() {
             <Route path="/" element={<PropertyList />} />
             <Route path="/properties" element={<PropertyList />} />
             <Route path="/analyze" element={<PropertyAnalysis data={propertyData} />} />
+            <Route path="/property-analysis/:id" element={<PropertyAnalysis data={null} />} />
             <Route path="/property-analysis/:id/:taskId" element={<PropertyAnalysis data={null} />} />
           </Routes>
         </div>

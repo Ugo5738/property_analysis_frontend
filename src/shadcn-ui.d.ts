@@ -79,3 +79,14 @@ declare module '@/components/ui/dialog' {
   export const DialogContent: React.FC<DialogContentProps>;
   export const DialogTrigger: React.FC<DialogTriggerProps>;
 }
+
+declare module '@/components/ui/table' {
+  import * as React from 'react';
+
+  export const Table: React.FC<React.TableHTMLAttributes<HTMLTableElement>>;
+  export const TableBody: React.FC<React.HTMLAttributes<HTMLTableSectionElement>>;
+  export const TableCell: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>>;
+  export const TableHead: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>>;
+  export const TableHeader: React.FC<React.HTMLAttributes<HTMLTableSectionElement>>;
+  export const TableRow: React.FC<React.HTMLAttributes<HTMLTableRowElement>>;
+}

@@ -1,5 +1,6 @@
 let socket: WebSocket | null = null;
 let connectedPromise: Promise<void> | null = null;
+const messageListeners: Array<(message: any) => void> = [];
 
 export const connectWebSocket = (url: string): Promise<void> => {
   if (connectedPromise) {
@@ -14,18 +15,28 @@ export const connectWebSocket = (url: string): Promise<void> => {
       resolve();
     };
 
-    socket.onclose = (event) => {
-      console.log('WebSocket disconnected');
-      console.log("WebSocket closed:", event.code, event.reason);
-      reject(new Error(`WebSocket closed: ${event.code} ${event.reason}`));
+    socket.onclose = () => {
+      // console.log('WebSocket disconnected');
       socket = null;
       connectedPromise = null;
     };
 
     socket.onerror = (error) => {
       console.error('WebSocket error:', error);
+      if (error instanceof Event) {
+        console.error('Error details:', (error.target as WebSocket).url);
+      }
       reject(error);
       connectedPromise = null;
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        messageListeners.forEach(callback => callback(message));
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
     };
   });
 
@@ -52,17 +63,12 @@ export const sendMessage = (message: object): void => {
 };
 
 export const onMessage = (callback: (message: any) => void): void => {
-  if (socket) {
-    socket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        callback(message);
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
-  } else {
-    console.error('WebSocket is not initialized');
-    throw new Error('WebSocket is not initialized');
+  messageListeners.push(callback);
+};
+
+export const removeMessageListener = (callback: (message: any) => void): void => {
+  const index = messageListeners.indexOf(callback);
+  if (index !== -1) {
+    messageListeners.splice(index, 1);
   }
 };

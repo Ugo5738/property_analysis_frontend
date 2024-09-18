@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Carousel,
@@ -24,7 +25,7 @@ import {
 import axiosInstance from "..//utils/axiosConfig";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "../components/contexts/AuthContext";
-import { onMessage } from "../services/websocketServices";
+import { onMessage, removeMessageListener } from "../services/websocketServices";
 
 
 interface PropertyData {
@@ -86,39 +87,66 @@ interface ProgressUpdate {
 
 
 const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }) => {
+  const { id, taskId: routeTaskId } = useParams<{ id: string; taskId?: string }>();
   const [url, setUrl] = useState<string>("");
+  const [data, setData] = useState<PropertyData | null>(initialData);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [data, setData] = useState<PropertyData | null>(initialData);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [progressUpdate, setProgressUpdate] = useState<ProgressUpdate | null>(null);
   const [fetchingResults, setFetchingResults] = useState(false);
-  const [taskId, setTaskId] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(routeTaskId || null);
   const { isConnected, connectToWebSocket } = useAuth();
 
   const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
 
+  const navigate = useNavigate();
+  
   useEffect(() => {
     if (!isConnected) {
       connectToWebSocket();
     }
 
-    onMessage((message) => {
-      console.log("Received WebSocket message:", message);
-      if (message.type === 'analysis_progress') {
-        setProgressUpdate(message.message);
-        if (message.message.stage === 'error') {
-          setError(message.message.message);
-          setLoading(false);
-        } else if (message.message.stage === 'complete') {
-          console.log("Analysis complete, fetching results...");
-          fetchAnalysisResults();
+    if (id) {
+      fetchPropertyData(id);
+    }
+
+    if (taskId) {
+      const handleMessage = (message: any) => {
+        console.log("Received WebSocket message:", message);
+        if (message.type === 'analysis_progress') {
+          setProgressUpdate(message.message);
+          if (message.message.stage === 'error') {
+            setError(message.message.message);
+            setLoading(false);
+          } else if (message.message.stage === 'complete') {
+            console.log("Analysis complete, fetching results...");
+            fetchAnalysisResults();
+          }
         }
-      }
-    });
-    
-  }, [isConnected, connectToWebSocket, taskId]);
+      };
+  
+      onMessage(handleMessage);
+      
+      return () => {
+        removeMessageListener(handleMessage);
+      };
+    }
+  }, [id, isConnected, connectToWebSocket, taskId]);
+
+  const fetchPropertyData = async (propertyId: string) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
+      setData(response.data);
+    } catch (error) {
+      console.error("Error fetching property data:", error);
+      setError("Failed to fetch property data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateUrl = (url: string): boolean => {
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
@@ -144,6 +172,9 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
       });
       console.log("Analysis initiated, task ID:", response.data.task_id);
       setTaskId(response.data.task_id);
+
+      // Navigate to the analysis page with the taskId
+      navigate(`/property-analysis/${response.data.property_id}/${response.data.task_id}`);
     } catch (error) {
       console.error("Error initiating analysis:", error);
       setError("An error occurred while analyzing the property. Please try again.");
@@ -342,20 +373,22 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <Input
-            type="text"
-            value={url}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
-            placeholder="Enter property URL"
-            className="flex-grow"
-          />
-          <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-            {loading ? "Analyzing..." : "Analyze"}
-          </Button>
-        </div>
-      </form>
+      {!id && (
+        <form onSubmit={handleSubmit} className="mb-6">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <Input
+              type="text"
+              value={url}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
+              placeholder="Enter property URL"
+              className="flex-grow"
+            />
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+              {loading ? "Analyzing..." : "Analyze"}
+            </Button>
+          </div>
+        </form>
+      )}
 
       {error && (
         <Alert className="mb-4">

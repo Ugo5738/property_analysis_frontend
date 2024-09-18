@@ -91,7 +91,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
   const [url, setUrl] = useState<string>("");
   const [data, setData] = useState<PropertyData | null>(initialData);
   const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [dataLoading, setDataLoading] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [progressUpdate, setProgressUpdate] = useState<ProgressUpdate | null>(null);
   const [fetchingResults, setFetchingResults] = useState(false);
@@ -100,6 +100,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
 
   const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
+  const [analysisInProgress, setAnalysisInProgress] = useState<boolean>(!!taskId);
 
   const navigate = useNavigate();
   
@@ -113,15 +114,17 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
     }
 
     if (taskId) {
+      setAnalysisInProgress(true);
       const handleMessage = (message: any) => {
         console.log("Received WebSocket message:", message);
         if (message.type === 'analysis_progress') {
           setProgressUpdate(message.message);
           if (message.message.stage === 'error') {
             setError(message.message.message);
-            setLoading(false);
+            setAnalysisInProgress(false);
           } else if (message.message.stage === 'complete') {
             console.log("Analysis complete, fetching results...");
+            setAnalysisInProgress(false);
             fetchAnalysisResults();
           }
         }
@@ -136,7 +139,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
   }, [id, isConnected, connectToWebSocket, taskId]);
 
   const fetchPropertyData = async (propertyId: string) => {
-    setLoading(true);
+    setDataLoading(true);
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
       setData(response.data);
@@ -144,7 +147,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
       console.error("Error fetching property data:", error);
       setError("Failed to fetch property data. Please try again.");
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
@@ -160,7 +163,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
       return;
     }
     setError("");
-    setLoading(true);
+    setDataLoading(true);
     setData(null);
     setProgressUpdate(null);
 
@@ -178,7 +181,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
     } catch (error) {
       console.error("Error initiating analysis:", error);
       setError("An error occurred while analyzing the property. Please try again.");
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
@@ -197,7 +200,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
         setTimeout(fetchAnalysisResults, 5000);
       } else if (response.data) {
         setData(response.data.overall_analysis);
-        setLoading(false);
+        setAnalysisInProgress(false);
       } else {
         console.error("No data received from the server");
         setError("No analysis results received. Please try again.");
@@ -383,8 +386,8 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
               placeholder="Enter property URL"
               className="flex-grow"
             />
-            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-              {loading ? "Analyzing..." : "Analyze"}
+            <Button type="submit" disabled={dataLoading} className="w-full sm:w-auto">
+              {dataLoading ? "Analyzing..." : "Analyze"}
             </Button>
           </div>
         </form>
@@ -397,7 +400,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
         </Alert>
       )}
 
-      {loading && progressUpdate && (
+      {analysisInProgress && progressUpdate && (
         <div className="mb-4">
           <p>{progressUpdate.stage}: {progressUpdate.message}</p>
           <progress value={progressUpdate.progress} max="100" className="w-full" />
@@ -411,7 +414,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
         </div>
       )}
 
-      {!loading && !fetchingResults && data && renderAnalysis()}
+      {!dataLoading && !fetchingResults && data && renderAnalysis()}
     </div>
   );
 };

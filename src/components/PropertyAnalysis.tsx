@@ -16,7 +16,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -26,7 +25,8 @@ import axiosInstance from "..//utils/axiosConfig";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "../components/contexts/AuthContext";
 import { onMessage, removeMessageListener } from "../services/websocketServices";
-
+import { Progress } from "@/components/ui/progress";
+import CustomTick from './CustomTick';
 
 interface PropertyData {
   property_url: string;
@@ -75,7 +75,7 @@ interface PropertyData {
 
 
 interface PropertyAnalysisProps {
-  data: PropertyData | null;
+  // data: PropertyData | null;
 }
 
 
@@ -86,10 +86,10 @@ interface ProgressUpdate {
 }
 
 
-const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }) => {
+const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ }) => {
   const { id, taskId: routeTaskId } = useParams<{ id: string; taskId?: string }>();
   const [url, setUrl] = useState<string>("");
-  const [data, setData] = useState<PropertyData | null>(initialData);
+  const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
   const [error, setError] = useState<string>("");
   const [dataLoading, setDataLoading] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -143,7 +143,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
       console.log("Fetched property data:", response.data);
-      setData(response.data.overall_analysis);
+      setPropertyData(response.data.overall_analysis);
     } catch (error) {
       console.error("Error fetching property data:", error);
       setError("Failed to fetch property data. Please try again.");
@@ -165,7 +165,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
     }
     setError("");
     setDataLoading(true);
-    setData(null);
+    setPropertyData(null);
     setProgressUpdate(null);
 
     try {
@@ -200,7 +200,7 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
         // Retry after a delay
         setTimeout(fetchAnalysisResults, 5000);
       } else if (response.data) {
-        setData(response.data.overall_analysis);
+        setPropertyData(response.data.overall_analysis);
         setAnalysisInProgress(false);
       } else {
         console.error("No data received from the server");
@@ -215,215 +215,298 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ data: initialData }
   };
 
   const renderAnalysis = () => {
-    if (!data || !data.stages) return null;
+    if (!propertyData || !propertyData.stages) return null;
   
     const conditionData = [
       {
-        name: "Below Average",
-        value: data.stages.overall_condition?.condition_distribution?.["below average"] ?? 0,
-      },
-      {
-        name: "Average",
-        value: data.stages.overall_condition?.condition_distribution?.["average"] ?? 0,
+        name: "Excellent",
+        value: propertyData.stages.overall_condition?.condition_distribution?.["excellent"] ?? 0,
       },
       {
         name: "Above Average",
-        value: data.stages.overall_condition?.condition_distribution?.["above average"] ?? 0,
+        value: propertyData.stages.overall_condition?.condition_distribution?.["above average"] ?? 0,
+      },
+      {
+        name: "Average",
+        value: propertyData.stages.overall_condition?.condition_distribution?.["average"] ?? 0,
+      },
+      {
+        name: "Below Average",
+        value: propertyData.stages.overall_condition?.condition_distribution?.["below average"] ?? 0,
       },
       {
         name: "Poor",
-        value: data.stages.overall_condition?.condition_distribution?.["poor"] ?? 0,
+        value: propertyData.stages.overall_condition?.condition_distribution?.["poor"] ?? 0,
       },
     ];
   
-    const allImages = Object.values(data.stages.detailed_analysis ?? {})
+    const allImages = Object.values(propertyData.stages.detailed_analysis ?? {})
       .flat()
       .map((item: any) => item.image_url)
       .filter(Boolean);
     
-    return (
-      <>
-        <h1 className="text-xl font-bold mb-4">
-          Property Analysis: {data.property_url}
-        </h1>
+      return (
+        <>
+          <h1 className="text-2xl font-bold mb-6">
+            Property Analysis
+          </h1>
   
-        <Carousel className="mb-6 max-w-md mx-auto">
-          <CarouselContent>
-            {allImages.map((imageUrl, index) => (
-              <CarouselItem key={index}>
-                <img
-                  src={imageUrl}
-                  alt={`Property image ${index + 1}`}
-                  className="w-full h-48 object-cover"
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
+          {/* Property URL */}
+          <div className="mb-6">
+            <p className="text-gray-600">Analyzing property:</p>
+            <a
+              href={propertyData.property_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-600 hover:underline"
+            >
+              {propertyData.property_url}
+            </a>
+          </div>
   
-        <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="w-full flex justify-center mb-4">
-            <TabsTrigger value="summary" className="flex-1">Summary</TabsTrigger>
-            <TabsTrigger value="detailed" className="flex-1">Detailed Analysis</TabsTrigger>
-          </TabsList>
+          {/* Image Carousel */}
+          <div className="mb-8">
+            <Carousel className="relative">
+              <CarouselContent>
+                {allImages.map((imageUrl, index) => (
+                  <CarouselItem key={index}>
+                    <img
+                      src={imageUrl}
+                      alt={`Property image ${index + 1}`}
+                      className="w-full h-64 object-cover rounded"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow">
+                {/* Left Arrow Icon */}
+              </CarouselPrevious>
+              <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow">
+                {/* Right Arrow Icon */}
+              </CarouselNext>
+              {/* Indicators (Optional) */}
+              {/* <CarouselIndicators /> */}
+            </Carousel>
+          </div>
   
-          <TabsContent value="summary">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Overall Condition</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-semibold">
-                    {data.stages.overall_condition?.overall_condition_label ?? 'N/A'}
-                  </p>
-                  <p>
-                    Average Score:{" "}
-                    {data.stages.overall_condition?.average_score?.toFixed(2) ?? 'N/A'}
-                  </p>
-                  <p>Confidence: {data.stages.overall_condition?.confidence ?? 'N/A'}</p>
-                  <p>
-                    Areas of Concern:{" "}
-                    {data.stages.overall_condition?.areas_of_concern ?? 'N/A'}
-                  </p>
-                </CardContent>
-              </Card>
+          {/* Tabs */}
+          <Tabs defaultValue="summary" className="w-full">
+            <TabsList className="w-full flex justify-center mb-6">
+              <TabsTrigger value="summary" className="flex-1">
+                Summary
+              </TabsTrigger>
+              <TabsTrigger value="detailed" className="flex-1">
+                Detailed Analysis
+              </TabsTrigger>
+            </TabsList>
   
-              <Card>
-                <CardHeader>
-                  <CardTitle>Condition Distribution</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={conditionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="value" fill="#8884d8" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+            {/* Summary Tab */}
+            <TabsContent value="summary">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Overall Condition Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Overall Condition</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold mb-4">
+                      {propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'}
+                    </p>
+                    <div className="space-y-2">
+                      <p>
+                        <span className="font-semibold">Average Score:</span>{" "}
+                        {propertyData.stages.overall_condition?.average_score?.toFixed(2) ?? 'N/A'}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Confidence:</span>{" "}
+                        {propertyData.stages.overall_condition?.confidence ?? 'N/A'}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Areas of Concern:</span>{" "}
+                        {propertyData.stages.overall_condition?.areas_of_concern ?? 'N/A'}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
   
-              <Card className="col-span-1 md:col-span-2">
-                <CardHeader>
-                  <CardTitle>Detailed Explanation</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="whitespace-pre-wrap text-sm">
-                    {data.stages.overall_condition?.explanation ?? 'No explanation available'}
-                  </pre>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                {/* Condition Distribution Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Condition Distribution</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={conditionData} margin={{ bottom: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="name"
+                          interval={0} // Ensures all labels are shown
+                          tick={CustomTick} // Improves readability
+                          height={60} // Provides more space for angled labels
+                        />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#6366F1" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
   
-          <TabsContent value="detailed">
-            <div className="space-y-8">
-              {Object.entries(data.stages.detailed_analysis ?? {}).map(
-                ([key, analysis]) => (
-                  <Card key={key}>
-                    <CardHeader>
-                      <CardTitle>
-                        {key
-                          .replace(/_/g, " ")
-                          .replace(/\b\w/g, (l) => l.toUpperCase())}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {(analysis as any[]).map((item) => (
-                          <div key={item.image_id} className="flex items-start space-y-2">
-                            <Dialog>
-                              <DialogTrigger>
-                                <img
-                                  src={item.image_url}
-                                  alt={`Image ${item.image_number}`}
-                                  className="w-24 h-24 object-cover rounded cursor-pointer"
-                                  onClick={() => setSelectedImage(item.image_url)}
-                                />
-                              </DialogTrigger>
-                              <DialogContent className="w-full max-w-3xl">
-                                <img
-                                  src={selectedImage || ''}
-                                  alt="Full size image"
-                                  className="w-full h-auto max-h-[80vh] object-contain"
-                                />
-                              </DialogContent>
-                            </Dialog>
-                            <div className="flex-grow">
-                              <p className="text-sm font-semibold mb-1">
-                                Image {item.image_number}: {item.condition_label}
-                              </p>
-                              <p className="text-sm">{item.reasoning}</p>
+                {/* Detailed Explanation */}
+                <Card className="col-span-1 md:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Detailed Explanation</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-gray-700 leading-relaxed space-y-4">
+                      {propertyData.stages.overall_condition?.explanation ? (
+                        <>
+                          {propertyData.stages.overall_condition.explanation.split('\n').map((para, idx) => (
+                            <p key={idx} className="mb-2 flex items-start">
+                              <span>{para}</span>
+                            </p>
+                          ))}
+                        </>
+                      ) : (
+                        <p>No explanation available.</p>
+                      )}
+                    </div>
+                  </CardContent>
+
+                </Card>
+              </div>
+            </TabsContent>
+  
+            {/* Detailed Analysis Tab */}
+            <TabsContent value="detailed">
+              <div className="space-y-8">
+                {Object.entries(propertyData.stages.detailed_analysis ?? {}).map(
+                  ([key, analysis]) => (
+                    <Card key={key}>
+                      <CardHeader>
+                        <CardTitle>
+                          {key
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                          {(analysis as any[]).map((item) => (
+                            <div key={item.image_id} className="flex space-x-4">
+                              <Dialog
+                                onOpenChange={(open) =>
+                                  !open && setSelectedImage(null)
+                                }
+                              >
+                                <DialogTrigger asChild>
+                                  <div
+                                    className="w-32 h-32 flex-shrink-0 cursor-pointer"
+                                    onClick={() =>
+                                      setSelectedImage(item.image_url)
+                                    }
+                                  >
+                                    <img
+                                      src={item.image_url}
+                                      alt={`Image ${item.image_number}`}
+                                      className="w-full h-full object-cover rounded"
+                                    />
+                                  </div>
+                                </DialogTrigger>
+                                {selectedImage && (
+                                  <DialogContent className="w-full max-w-3xl">
+                                    <img
+                                      src={selectedImage}
+                                      alt="Full size"
+                                      className="w-full h-auto max-h-[80vh] object-contain"
+                                    />
+                                  </DialogContent>
+                                )}
+                              </Dialog>
+                              <div>
+                                <p className="text-lg font-semibold mb-2">
+                                  Image {item.image_number}: {item.condition_label}
+                                </p>
+                                <p className="text-gray-700">{item.reasoning}</p>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              )}
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </>
+      );
+    };
+
+    return (
+      <div className="container mx-auto p-4 max-w-6xl">
+        {/* Analysis Form */}
+        {!id && (
+          <form onSubmit={handleSubmit} className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Input
+                type="text"
+                value={url}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
+                placeholder="Enter property URL"
+                className="flex-grow"
+              />
+              <Button
+                type="submit"
+                disabled={dataLoading}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                {dataLoading ? "Analyzing..." : "Analyze"}
+              </Button>
             </div>
-          </TabsContent>
-        </Tabs>
-      </>
+          </form>
+        )}
+  
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+  
+        {/* Progress Indicator */}
+        {analysisInProgress && progressUpdate && (
+          <div className="mb-6">
+            <p className="mb-2 text-gray-700">
+              {progressUpdate.stage}: {progressUpdate.message}
+            </p>
+            <Progress value={progressUpdate.progress} className="w-full h-2 bg-gray-200" />
+          </div>
+        )}
+  
+        {/* Fetching Results Indicator */}
+        {fetchingResults && (
+          <div className="mb-6">
+            <p className="mb-2 text-gray-700">
+              Fetching analysis results... Status: {analysisStatus}
+            </p>
+            <Progress value={analysisProgress} className="w-full h-2 bg-gray-200" />
+          </div>
+        )}
+  
+        {/* Loading Indicator */}
+        {dataLoading && (
+          <div className="mb-6">
+            <p className="text-gray-700">Loading property data...</p>
+          </div>
+        )}
+  
+        {/* Render Analysis */}
+        {!dataLoading && !fetchingResults && propertyData && renderAnalysis()}
+      </div>
     );
   };
-
-  return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      {!id && (
-        <form onSubmit={handleSubmit} className="mb-6">
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-            <Input
-              type="text"
-              value={url}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
-              placeholder="Enter property URL"
-              className="flex-grow"
-            />
-            <Button type="submit" disabled={dataLoading} className="w-full sm:w-auto">
-              {dataLoading ? "Analyzing..." : "Analyze"}
-            </Button>
-          </div>
-        </form>
-      )}
-
-      {error && (
-        <Alert className="mb-4">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {analysisInProgress && progressUpdate && (
-        <div className="mb-4">
-          <p>{progressUpdate.stage}: {progressUpdate.message}</p>
-          <progress value={progressUpdate.progress} max="100" className="w-full" />
-        </div>
-      )}
-
-      {fetchingResults && (
-        <div className="mb-4">
-          <p>Fetching analysis results... Status: {analysisStatus}</p>
-          <progress value={analysisProgress} max="100" className="w-full" />
-        </div>
-      )}
-
-      {dataLoading && (
-        <div className="mb-4">
-          <p>Loading property data...</p>
-        </div>
-      )}
-
-      {!dataLoading && !fetchingResults && data && renderAnalysis()}
-    </div>
-  );
-};
+  
 
 export default PropertyAnalysis;

@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   return (
-    <nav className="bg-gray-800 text-white p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <ul className="flex space-x-4">
-          <li><Link to="/properties" className="hover:text-gray-300">Property List</Link></li>
-          <li><Link to="/analyze" className="hover:text-gray-300">New Analysis</Link></li>
-        </ul>
+    <nav className="bg-white shadow-md">
+      <div className="w-full py-4 px-6">
+        <div className="flex items-center justify-start">
+          <Link to="/" className="text-2xl font-bold text-indigo-600">
+            PropertyAnalyzer
+          </Link>
+        </div>
       </div>
     </nav>
   );

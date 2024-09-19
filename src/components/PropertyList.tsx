@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from 'react-router-dom';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { RefreshCw, Plus } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import axiosInstance from "../utils/axiosConfig";
 
 interface Property {
@@ -17,92 +19,97 @@ const PropertyList: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchProperties();
   }, []);
 
+  const filteredProperties = properties.filter((property) =>
+    property.url.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const fetchProperties = async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get('/api/analysis/properties/');
-    //   console.log('API response:', response.data); // Debug log
-      if (Array.isArray(response.data)) {
-        setProperties(response.data);
-      } else if (response.data && Array.isArray(response.data.results)) {
-        setProperties(response.data.results);
-      } else {
-        throw new Error('Unexpected data format from API');
-      }
-      setLoading(false);
+      setProperties(Array.isArray(response.data) ? response.data : response.data.results || []);
     } catch (err) {
       console.error('Error fetching properties:', err);
       setError('Failed to fetch properties. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleAnalyze = async (propertyId: number) => {
-    try {
-      // Initiate analysis by sending property_id
-      const response = await axiosInstance.post('/api/analysis/properties/analyze/', {
-        property_id: propertyId,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const taskId = response.data.task_id;
-
-      // Navigate to the analysis page to show progress
-      navigate(`/property-analysis/${propertyId}/${taskId}`);
-    } catch (error) {
-      console.error('Error initiating analysis:', error);
-      setError('Failed to initiate analysis. Please try again.');
-    }
-  };
-
-  if (loading) return <div>Loading properties...</div>;
-  if (error) return <Alert variant="destructive"><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>;
-
-  if (properties.length === 0) {
-    return <Alert><AlertTitle>No Properties</AlertTitle><AlertDescription>No properties found. Try adding some properties first.</AlertDescription></Alert>;
-  }
-
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>Property List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>URL</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>Updated At</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {properties.map((property) => (
-                <TableRow key={property.id}>
-                  <TableCell>
-                    <Link to={`/property-analysis/${property.id}`}>
-                      {property.url}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{new Date(property.created_at).toLocaleString()}</TableCell>
-                  <TableCell>{new Date(property.updated_at).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Button onClick={() => handleAnalyze(property.id)}>Analyze</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="container mx-auto p-6 max-w-7xl">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>
+      <Card className="bg-white shadow-md">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <div className="relative w-full sm:w-auto flex-grow">
+              <Input
+                type="text"
+                placeholder="Search properties..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full"
+              />
+            </div>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <Button onClick={fetchProperties} variant="outline" className="flex items-center justify-center flex-grow sm:flex-grow-0">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+              <Link to="/analyze" className="w-full sm:w-auto">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center flex-grow sm:flex-grow-0">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Analysis
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-8 text-gray-600">Loading properties...</div>
+          ) : error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : filteredProperties.length === 0 ? (
+            <Alert>
+              <AlertDescription>No properties found. Try adding some properties or adjusting your search.</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-1/2">URL</TableHead>
+                    <TableHead>Created At</TableHead>
+                    <TableHead>Updated At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProperties.map((property) => (
+                    <TableRow key={property.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">
+                        <Link
+                          to={`/property-analysis/${property.id}`}
+                          className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                        >
+                          {property.url}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{new Date(property.created_at).toLocaleString()}</TableCell>
+                      <TableCell>{new Date(property.updated_at).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

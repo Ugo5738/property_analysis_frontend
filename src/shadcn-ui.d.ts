@@ -43,8 +43,17 @@ declare module '@/components/ui/carousel' {
   }
   
   declare module '@/components/ui/button' {
-    export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>>;
-  }
+    import { VariantProps } from 'class-variance-authority';
+    import { buttonVariants } from './button';
+  
+    export interface ButtonProps
+      extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+        VariantProps<typeof buttonVariants> {
+      asChild?: boolean;
+    }
+  
+    export const Button: React.FC<ButtonProps>;
+  }  
   
   declare module '@/components/ui/alert' {
     import { VariantProps } from "class-variance-authority";
@@ -89,4 +98,8 @@ declare module '@/components/ui/table' {
   export const TableHead: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>>;
   export const TableHeader: React.FC<React.HTMLAttributes<HTMLTableSectionElement>>;
   export const TableRow: React.FC<React.HTMLAttributes<HTMLTableRowElement>>;
+}
+
+declare module '@/components/ui/progress' {
+  export const Progress: React.FC<React.ProgressHTMLAttributes<HTMLProgressElement>>;
 }

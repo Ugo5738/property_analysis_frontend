@@ -22,11 +22,13 @@ import {
   YAxis,
 } from "recharts";
 import axiosInstance from "..//utils/axiosConfig";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useAuth } from "../components/contexts/AuthContext";
 import { onMessage, removeMessageListener } from "../services/websocketServices";
 import { Progress } from "@/components/ui/progress";
 import CustomTick from './CustomTick';
+
 
 interface PropertyData {
   property_url: string;
@@ -74,11 +76,6 @@ interface PropertyData {
 }
 
 
-interface PropertyAnalysisProps {
-  // data: PropertyData | null;
-}
-
-
 interface ProgressUpdate {
   stage: string;
   message: string;
@@ -86,7 +83,7 @@ interface ProgressUpdate {
 }
 
 
-const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ }) => {
+const PropertyAnalysis: React.FC<{}> = () => {
   const { id, taskId: routeTaskId } = useParams<{ id: string; taskId?: string }>();
   const [url, setUrl] = useState<string>("");
   const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
@@ -415,12 +412,23 @@ const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({ }) => {
                                 </DialogTrigger>
                                 {selectedImage && (
                                   <DialogContent className="w-full max-w-3xl">
-                                    <img
-                                      src={selectedImage}
-                                      alt="Full size"
-                                      className="w-full h-auto max-h-[80vh] object-contain"
-                                    />
-                                  </DialogContent>
+                                  {/* Dialog Title (Hidden Visually) */}
+                                  <DialogTitle>
+                                    <VisuallyHidden>Full-size Property Image</VisuallyHidden>
+                                  </DialogTitle>
+                                  
+                                  {/* Dialog Description */}
+                                  <DialogDescription>
+                                    This is a full-size view of the property image number {item.image_number}.
+                                  </DialogDescription>
+                                  
+                                  {/* Image */}
+                                  <img
+                                    src={selectedImage}
+                                    alt={`Full-size image of property ${item.image_number}`}
+                                    className="w-full h-auto max-h-[80vh] object-contain"
+                                  />
+                                </DialogContent>                            
                                 )}
                               </Dialog>
                               <div>

@@ -68,26 +68,42 @@ declare module '@/components/ui/carousel' {
     export const AlertTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>>;
   }
 
-declare module '@/components/ui/dialog' {
-  import * as React from 'react';
-
-  interface DialogProps extends React.ComponentPropsWithoutRef<'div'> {
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
+  declare module '@/components/ui/dialog' {
+    import * as React from 'react';
+  
+    interface DialogProps extends React.ComponentPropsWithoutRef<'div'> {
+      open?: boolean;
+      onOpenChange?: (open: boolean) => void;
+    }
+  
+    interface DialogContentProps extends React.ComponentPropsWithoutRef<'div'> {
+      forceMount?: true;
+    }
+  
+    interface DialogTriggerProps extends React.ComponentPropsWithoutRef<'button'> {
+      asChild?: boolean;
+    }
+  
+    interface DialogTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+      size?: 'default' | 'large';
+    }
+  
+    interface DialogDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+      size?: 'default' | 'large';
+    }
+  
+    export const Dialog: React.FC<DialogProps>;
+    export const DialogContent: React.FC<DialogContentProps>;
+    export const DialogTrigger: React.FC<DialogTriggerProps>;
+    export const DialogTitle: React.FC<DialogTitleProps>;
+    export const DialogDescription: React.FC<DialogDescriptionProps>;
   }
-
-  interface DialogContentProps extends React.ComponentPropsWithoutRef<'div'> {
-    forceMount?: true;
+  
+  declare module '@/components/ui/visually-hidden' {
+    import * as React from 'react';
+  
+    export const VisuallyHidden: React.FC<React.HTMLAttributes<HTMLSpanElement>>;
   }
-
-  interface DialogTriggerProps extends React.ComponentPropsWithoutRef<'button'> {
-    asChild?: boolean;
-  }
-
-  export const Dialog: React.FC<DialogProps>;
-  export const DialogContent: React.FC<DialogContentProps>;
-  export const DialogTrigger: React.FC<DialogTriggerProps>;
-}
 
 declare module '@/components/ui/table' {
   import * as React from 'react';

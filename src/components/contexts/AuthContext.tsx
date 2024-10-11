@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       disconnectFromWebSocket();
     };
-  }, [location.pathname]);
+  }, []);
 
   return (
     <AuthContext.Provider

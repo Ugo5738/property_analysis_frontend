@@ -290,11 +290,14 @@ const PropertyAnalysis: React.FC<{}> = () => {
             <CarouselContent>
               {analyzedImages.map((imageUrl, index) => (
                 <CarouselItem key={index}>
-                  <img
-                    src={imageUrl}
-                    alt={`Property image ${index + 1}`}
-                    className="w-full h-64 object-cover rounded"
-                  />
+                  <div className="w-full h-64 flex justify-center items-center bg-gray-100">
+                    <img
+                      src={imageUrl}
+                      alt={`Property image ${index + 1}`}
+                      className="max-h-full object-contain rounded"
+                      // className="w-full h-64 object-cover rounded"
+                    />
+                  </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
@@ -445,7 +448,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
                   <Card key={key}>
                     <CardHeader>
                       <CardTitle>
-                        {key
+                        {(key === "others" ? "Others" : key)
                           .replace(/_/g, " ")
                           .replace(/\b\w/g, (l) => l.toUpperCase())}
                       </CardTitle>
@@ -550,7 +553,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
       {analysisInProgress && progressUpdate && (
         <div className="mb-6">
           <p className="mb-2 text-gray-700">
-            {progressUpdate.stage}: {progressUpdate.message}
+            {progressUpdate.stage.charAt(0).toUpperCase() + progressUpdate.stage.slice(1)}: {progressUpdate.message}
           </p>
           <Progress value={progressUpdate.progress} className="w-full h-2 bg-gray-200" />
         </div>

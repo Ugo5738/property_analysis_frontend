@@ -1,3 +1,4 @@
+import ConditionScale from "@/components/ConditionScale";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -265,6 +266,11 @@ const PropertyAnalysis: React.FC<{}> = () => {
     const totalAnalyzedImages = analyzedImages.length;
     const totalSkippedImages = totalPropertyImages - totalAnalyzedImages;
 
+    const groupedImages = [];
+    for (let i = 0; i < analyzedImages.length; i += 3) {
+      groupedImages.push(analyzedImages.slice(i, i + 3));
+    }
+
     return (
       <>
         <h1 className="text-2xl font-bold mb-6">
@@ -288,9 +294,16 @@ const PropertyAnalysis: React.FC<{}> = () => {
         <div className="mb-8">
           <Carousel className="relative">
             <CarouselContent>
-              {analyzedImages.map((imageUrl, index) => (
+              {/* {analyzedImages.map((imageUrl, index) => ( */}
+              {groupedImages.map((imageGroup, index) => (
                 <CarouselItem key={index}>
-                  <div className="w-full h-64 flex justify-center items-center bg-gray-100">
+                  <div className="flex space-x-4">
+                  {/* <div className="w-full h-64 flex justify-center items-center bg-gray-100"> */}
+                  {imageGroup.map((imageUrl, idx) => (
+                    <div
+                      key={idx}
+                      className="w-1/3 h-64 flex justify-center items-center bg-gray-100"
+                    >
                     <img
                       src={imageUrl}
                       alt={`Property image ${index + 1}`}
@@ -298,6 +311,8 @@ const PropertyAnalysis: React.FC<{}> = () => {
                       // className="w-full h-64 object-cover rounded"
                     />
                   </div>
+                  ))}
+                </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
@@ -364,10 +379,9 @@ const PropertyAnalysis: React.FC<{}> = () => {
                     {propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'}
                   </p>
                   <div className="space-y-2">
-                    <p>
-                      <span className="font-semibold">Average Score:</span>{" "}
-                      {propertyData.stages.overall_condition?.average_score?.toFixed(2) ?? 'N/A'}
-                    </p>
+                    <ConditionScale 
+                      score={propertyData.stages.overall_condition?.average_score ?? 0} 
+                    />
                     <p>
                       <span className="font-semibold">Confidence:</span>{" "}
                       {propertyData.stages.overall_condition?.confidence ?? 'N/A'}

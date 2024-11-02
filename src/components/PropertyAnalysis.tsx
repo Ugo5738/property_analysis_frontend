@@ -62,10 +62,10 @@ interface PropertyData {
     overall_condition: {
       overall_condition_label: string;
       average_score: number;
-      distribution: {
-        [key: string]: number;
-      };
-      condition_distribution: {
+      // distribution: {
+      //   [key: string]: number;
+      // };
+      label_distribution: {
         [key: string]: number;
       };
       areas_of_concern: number; // Changed from string to number
@@ -218,23 +218,23 @@ const PropertyAnalysis: React.FC<{}> = () => {
     const conditionData = [
       {
         name: "Excellent",
-        value: propertyData.stages.overall_condition?.condition_distribution?.["Excellent"] ?? 0,
+        value: propertyData.stages.overall_condition?.label_distribution?.["Excellent"] ?? 0,
       },
       {
         name: "Above Average",
-        value: propertyData.stages.overall_condition?.condition_distribution?.["Above Average"] ?? 0,
+        value: propertyData.stages.overall_condition?.label_distribution?.["Above Average"] ?? 0,
       },
       // {
       //   name: "Average",
-      //   value: propertyData.stages.overall_condition?.condition_distribution?.["Average"] ?? 0,
+      //   value: propertyData.stages.overall_condition?.label_distribution?.["Average"] ?? 0,
       // },
       {
         name: "Below Average",
-        value: propertyData.stages.overall_condition?.condition_distribution?.["Below Average"] ?? 0,
+        value: propertyData.stages.overall_condition?.label_distribution?.["Below Average"] ?? 0,
       },
       {
         name: "Poor",
-        value: propertyData.stages.overall_condition?.condition_distribution?.["Poor"] ?? 0,
+        value: propertyData.stages.overall_condition?.label_distribution?.["Poor"] ?? 0,
       },
     ];
 
@@ -376,11 +376,13 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold mb-4">
-                    {propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'}
+                    {/* {propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'} */}
+                    {propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'} ({propertyData.stages.overall_condition?.average_score}%)
                   </p>
                   <div className="space-y-2">
                     <ConditionScale 
-                      score={propertyData.stages.overall_condition?.average_score ?? 0} 
+                      score={propertyData.stages.overall_condition?.average_score ?? 0}
+                      label={propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'}
                     />
                     <p>
                       <span className="font-semibold">Confidence:</span>{" "}
@@ -508,12 +510,12 @@ const PropertyAnalysis: React.FC<{}> = () => {
                                   alt={`Full-size image of property ${item.image_number}`}
                                   className="w-full h-auto max-h-[80vh] object-contain"
                                 />
-                              </DialogContent>                            
+                                </DialogContent>                            
                               )}
                             </Dialog>
                             <div>
                               <p className="text-lg font-semibold mb-2">
-                                Image {item.image_number}: {item.condition_label}
+                                Image {item.image_number}: {item.condition_label} ({item.condition_score}%)
                               </p>
                               <p className="text-gray-700">{item.reasoning}</p>
                             </div>

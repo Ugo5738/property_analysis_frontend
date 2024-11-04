@@ -57,17 +57,16 @@ interface PropertyData {
         reasoning: string;
         image_url: string;
         image_id: number;
+        condition_score: number;
       }>;
     };
     overall_condition: {
       overall_condition_label: string;
       average_score: number;
-      // distribution: {
-      //   [key: string]: number;
-      // };
       label_distribution: {
         [key: string]: number;
       };
+      total_assessments: number;
       areas_of_concern: number; // Changed from string to number
       confidence: string;
       explanation: string;
@@ -214,28 +213,43 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
   const renderAnalysis = () => {
     if (!propertyData || !propertyData.stages) return null;
+
+    // Extract total assessments
+  const totalAssessments = propertyData.stages.overall_condition?.total_assessments ?? 0;
+
+  // Calculate counts for each condition
   
     const conditionData = [
       {
         name: "Excellent",
-        value: propertyData.stages.overall_condition?.label_distribution?.["Excellent"] ?? 0,
-      },
+        value:
+          (propertyData.stages.overall_condition?.label_distribution?.["Excellent"] ?? 0) *
+          totalAssessments,
+      },    
       {
         name: "Above Average",
-        value: propertyData.stages.overall_condition?.label_distribution?.["Above Average"] ?? 0,
+        value:
+          (propertyData.stages.overall_condition?.label_distribution?.["Above Average"] ?? 0) *
+          totalAssessments,
       },
       // {
       //   name: "Average",
-      //   value: propertyData.stages.overall_condition?.label_distribution?.["Average"] ?? 0,
-      // },
+      //   value:
+      //     (propertyData.stages.overall_condition?.label_distribution?.["Average"] ?? 0) *
+      //     totalAssessments,
+      // },    
       {
         name: "Below Average",
-        value: propertyData.stages.overall_condition?.label_distribution?.["Below Average"] ?? 0,
+        value:
+          (propertyData.stages.overall_condition?.label_distribution?.["Below Average"] ?? 0) *
+          totalAssessments,
       },
       {
         name: "Poor",
-        value: propertyData.stages.overall_condition?.label_distribution?.["Poor"] ?? 0,
-      },
+        value:
+          (propertyData.stages.overall_condition?.label_distribution?.["Poor"] ?? 0) *
+          totalAssessments,
+      },    
     ];
 
     // // Get IDs of images included in the analysis
@@ -411,7 +425,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
                         tick={CustomTick} // Improves readability
                         height={60} // Provides more space for angled labels
                       />
-                      <YAxis allowDecimals={false} />
+                      <YAxis allowDecimals={false} domain={[0, totalAssessments]} />
                       <Tooltip content={({ payload, }) => {
                         if (!payload || payload.length === 0) return null;
                         const data = payload[0].payload;

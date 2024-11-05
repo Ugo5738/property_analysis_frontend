@@ -84,7 +84,8 @@ interface ProgressUpdate {
 
 
 const PropertyAnalysis: React.FC<{}> = () => {
-  const { id, taskId: routeTaskId } = useParams<{ id: string; taskId?: string }>();
+  // const { id, taskId: routeTaskId } = useParams<{ id: string; taskId?: string }>();
+  const { id, taskId } = useParams<{ id: string; taskId?: string }>();
   const [url, setUrl] = useState<string>("");
   const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
   const [error, setError] = useState<string>("");
@@ -92,7 +93,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [progressUpdate, setProgressUpdate] = useState<ProgressUpdate | null>(null);
   const [fetchingResults, setFetchingResults] = useState(false);
-  const [taskId, setTaskId] = useState<string | null>(routeTaskId || null);
+  // const [taskId, setTaskId] = useState<string | null>(routeTaskId || null);
   const { isConnected, connectToWebSocket } = useAuth();
 
   const [analysisStatus, setAnalysisStatus] = useState<string>("");
@@ -135,6 +136,11 @@ const PropertyAnalysis: React.FC<{}> = () => {
     }
   }, [id, isConnected, connectToWebSocket, taskId]);
 
+  // Optionally, update analysisInProgress when taskId changes
+  useEffect(() => {
+    setAnalysisInProgress(!!taskId);
+  }, [taskId]);
+
   const fetchPropertyData = async (propertyId: string) => {
     setDataLoading(true);
     try {
@@ -172,7 +178,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
         },
       });
       console.log("Analysis initiated, task ID:", response.data.task_id);
-      setTaskId(response.data.task_id);
+      // setTaskId(response.data.task_id);
 
       // Navigate to the analysis page with the taskId
       navigate(`/property-analysis/${response.data.property_id}/${response.data.task_id}`);
@@ -211,65 +217,41 @@ const PropertyAnalysis: React.FC<{}> = () => {
     }
   };
 
+  const getProgressBarColor = (progress: number) => {
+    if (progress < 30) return 'bg-red-500';
+    if (progress < 60) return 'bg-yellow-500';
+    if (progress < 90) return 'bg-blue-500';
+    return 'bg-green-500';
+  };
+
   const renderAnalysis = () => {
     if (!propertyData || !propertyData.stages) return null;
 
-    // Extract total assessments
-  const totalAssessments = propertyData.stages.overall_condition?.total_assessments ?? 0;
+    // Extract data from propertyData
+    const overallCondition = propertyData.stages.overall_condition ?? {};
+    const labelDistribution = overallCondition.label_distribution ?? {};
+    const totalAssessments = overallCondition.total_assessments ?? 0;
 
-  // Calculate counts for each condition
-  
-    const conditionData = [
-      {
-        name: "Excellent",
-        value:
-          (propertyData.stages.overall_condition?.label_distribution?.["Excellent"] ?? 0) *
-          totalAssessments,
-      },    
-      {
-        name: "Above Average",
-        value:
-          (propertyData.stages.overall_condition?.label_distribution?.["Above Average"] ?? 0) *
-          totalAssessments,
-      },
-      // {
-      //   name: "Average",
-      //   value:
-      //     (propertyData.stages.overall_condition?.label_distribution?.["Average"] ?? 0) *
-      //     totalAssessments,
-      // },    
-      {
-        name: "Below Average",
-        value:
-          (propertyData.stages.overall_condition?.label_distribution?.["Below Average"] ?? 0) *
-          totalAssessments,
-      },
-      {
-        name: "Poor",
-        value:
-          (propertyData.stages.overall_condition?.label_distribution?.["Poor"] ?? 0) *
-          totalAssessments,
-      },    
-    ];
+    // Log the data for debugging
+    console.log('Overall Condition:', overallCondition);
+    console.log('Label Distribution:', labelDistribution);
+    console.log('Total Assessments:', totalAssessments);
 
-    // // Get IDs of images included in the analysis
-    // const analyzedImageIds = new Set(
-    //   Object.values(propertyData.stages.detailed_analysis ?? {})
-    //     .flat()
-    //     .map((item: any) => item.image_id)
-    // );
+    // Check if totalAssessments is zero
+    if (totalAssessments === 0) {
+      console.warn('Total assessments is zero. The condition distribution chart will be empty.');
+    }
 
-    // // Get all initial images with their IDs
-    // const allInitialImages = propertyData.stages.initial_categorization.map((item, index) => ({
-    //   image_id: index + 1, // Adjust based on how image IDs are assigned
-    //   category: item.category,
-    //   details: item.details,
-    // }));
+    const allLabels = ["Excellent", "Above Average", "Below Average", "Poor"];
 
-    // // Identify skipped images
-    // const skippedImages = allInitialImages.filter(
-    //   (img) => !analyzedImageIds.has(img.image_id)
-    // );
+    // Construct conditionData
+    const conditionData = allLabels.map((label) => ({
+      name: label,
+      value: Number(labelDistribution[label] || 0) * Number(totalAssessments),
+    }));
+
+    // Log conditionData
+    console.log('Condition Data:', conditionData);
 
     const analyzedImages = Object.values(propertyData.stages.detailed_analysis ?? {})
       .flat()
@@ -416,16 +398,16 @@ const PropertyAnalysis: React.FC<{}> = () => {
                   <CardTitle>Condition Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={conditionData} margin={{ bottom: 60 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={conditionData} margin={{ bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="name"
                         interval={0} // Ensures all labels are shown
                         tick={CustomTick} // Improves readability
                         height={60} // Provides more space for angled labels
                       />
-                      <YAxis allowDecimals={false} domain={[0, totalAssessments]} />
+                      <YAxis allowDecimals={false} domain={[0, Math.max(totalAssessments, 10)]} />
                       <Tooltip content={({ payload, }) => {
                         if (!payload || payload.length === 0) return null;
                         const data = payload[0].payload;
@@ -585,7 +567,12 @@ const PropertyAnalysis: React.FC<{}> = () => {
           <p className="mb-2 text-gray-700">
             {progressUpdate.stage.charAt(0).toUpperCase() + progressUpdate.stage.slice(1)}: {progressUpdate.message}
           </p>
-          <Progress value={progressUpdate.progress} className="w-full h-2 bg-gray-200" />
+          <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+          <div
+              className={`h-full ${getProgressBarColor(progressUpdate.progress)} animate-progress`}
+              style={{ width: `${progressUpdate.progress}%`, transition: 'width 0.5s ease-in-out' }}
+            />
+          </div>
         </div>
       )}
 

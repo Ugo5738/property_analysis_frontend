@@ -217,13 +217,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
     }
   };
 
-  const getProgressBarColor = (progress: number) => {
-    if (progress < 30) return 'bg-red-500';
-    if (progress < 60) return 'bg-yellow-500';
-    if (progress < 90) return 'bg-blue-500';
-    return 'bg-green-500';
-  };
-
   const renderAnalysis = () => {
     if (!propertyData || !propertyData.stages) return null;
 
@@ -563,15 +556,20 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
       {/* Progress Indicator */}
       {analysisInProgress && progressUpdate && (
-        <div className="mb-6">
-          <p className="mb-2 text-gray-700">
-            {progressUpdate.stage.charAt(0).toUpperCase() + progressUpdate.stage.slice(1)}: {progressUpdate.message}
-          </p>
-          <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
-          <div
-              className={`h-full ${getProgressBarColor(progressUpdate.progress)} animate-progress`}
-              style={{ width: `${progressUpdate.progress}%`, transition: 'width 0.5s ease-in-out' }}
-            />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-full max-w-md px-4">
+            <p className="mb-4 text-gray-700 text-center">
+              {progressUpdate.stage.charAt(0).toUpperCase() + progressUpdate.stage.slice(1)}: {progressUpdate.message}
+            </p>
+            <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-green-500 bg-[length:200%_100%] animate-gradient"
+                style={{
+                  width: `${progressUpdate.progress}%`,
+                  transition: 'width 0.5s ease-in-out',
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

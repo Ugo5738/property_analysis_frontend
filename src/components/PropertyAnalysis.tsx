@@ -33,6 +33,16 @@ import CustomTick from './CustomTick';
 
 interface PropertyData {
   property_url: string;
+  address: string;
+  price: string;
+  bedrooms: number;
+  bathrooms: number;
+  size: string;
+  house_type: string;
+  agent: string;
+  description: string;
+  image_urls: string[];
+  floorplan_urls: string[];
   stages: {
     initial_categorization: Array<{
       category: string;
@@ -195,7 +205,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
     setFetchingResults(true);
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${taskId}/results/`);
-      console.log("Analysis results received:", response.data);
+      // console.log("Analysis results received:", response.data);
       if (response.status === 202) {
         // Analysis not yet complete
         setAnalysisStatus(response.data.status);
@@ -353,7 +363,64 @@ const PropertyAnalysis: React.FC<{}> = () => {
             <TabsTrigger value="detailed" className="flex-1">
               Detailed Analysis
             </TabsTrigger>
+            <TabsTrigger value="property_data" className="flex-1">
+              Property Data
+            </TabsTrigger>
           </TabsList>
+          
+          {/* Property Data Tab */}
+          <TabsContent value="property_data">
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Address</h2>
+                <p>{propertyData.address}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Price</h2>
+                <p>{propertyData.price}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Bedrooms</h2>
+                <p>{propertyData.bedrooms}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Bathrooms</h2>
+                <p>{propertyData.bathrooms}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Size</h2>
+                <p>{propertyData.size}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">House Type</h2>
+                <p>{propertyData.house_type}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Agent</h2>
+                <p>{propertyData.agent}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Description</h2>
+                <p>{propertyData.description}</p>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Images</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {propertyData.image_urls.map((imageUrl, index) => (
+                    <img key={index} src={imageUrl} alt={`Image ${index + 1}`} className="w-full h-auto rounded" />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {propertyData.floorplan_urls.map((floorplanUrl, index) => (
+                    <img key={index} src={floorplanUrl} alt={`Floorplan ${index + 1}`} className="w-full h-auto rounded" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
 
           {/* Summary Tab */}
           <TabsContent value="summary">

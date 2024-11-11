@@ -263,7 +263,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
   };
 
   const renderAnalysis = () => {
-    if (!propertyData || !propertyData.overall_analysis.stages) return null;
+    if (!propertyData?.overall_analysis?.stages) return null;
 
     // Extract data from propertyData
     const overallCondition = propertyData.overall_analysis.stages.overall_condition ?? {};

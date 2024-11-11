@@ -32,6 +32,8 @@ import CustomTick from './CustomTick';
 
 
 interface PropertyData {
+  id: number;
+  url: string;
   property_url: string;
   address: string;
   price: string;
@@ -43,46 +45,79 @@ interface PropertyData {
   description: string;
   image_urls: string[];
   floorplan_urls: string[];
-  stages: {
-    initial_categorization: Array<{
-      category: string;
-      details: {
-        room_type?: string;
-        exterior_type?: string;
-        others?: string;
-      };
-    }>;
-    grouped_images: {
-      [key: string]: {
-        [key: string]: number[];
-      };
-    };
-    merged_images: {
-      [key: string]: string[];
-    };
-    detailed_analysis: {
-      [key: string]: Array<{
-        image_number: number;
-        condition_label: string;
-        reasoning: string;
-        image_url: string;
-        image_id: number;
-        condition_score: number;
-      }>;
-    };
-    overall_condition: {
-      overall_condition_label: string;
-      average_score: number;
-      label_distribution: {
-        [key: string]: number;
-      };
-      total_assessments: number;
-      areas_of_concern: number; // Changed from string to number
-      confidence: string;
-      explanation: string;
-    };
+  overall_condition: {
+    areas_of_concern: number;
+    average_score: number;
+    confidence: string;
+    explanation: string;
+    label_distribution: { [key: string]: number };
+    overall_condition_label: string;
+    total_assessments: number;
   };
-  Image_Analysis: Record<string, unknown>;
+  detailed_analysis: {
+    [key: string]: Array<{
+      condition_label: string;
+      condition_score: number;
+      image_id: number;
+      image_number: number;
+      image_url: string;
+      reasoning: string;
+      similarities: { [key: string]: number };
+    }>;
+  };
+  images: Array<{
+    id: number;
+    image: string;
+    original_url: string;
+    main_category: string;
+    sub_category: string;
+    room_type: string;
+    reasoning: string;
+  }>;
+  failed_downloads: any[];
+  overall_analysis: {
+    property_url: string;
+    stages: {
+      initial_categorization: Array<{
+        category: string;
+        details: {
+          room_type?: string;
+          exterior_type?: string;
+          others?: string;
+        };
+      }>;
+      grouped_images: {
+        [key: string]: {
+          [key: string]: number[];
+        };
+      };
+      merged_images: {
+        [key: string]: string[];
+      };
+      detailed_analysis: {
+        [key: string]: Array<{
+          condition_label: string;
+          condition_score: number;
+          image_id: number;
+          image_number: number;
+          image_url: string;
+          reasoning: string;
+          similarities: { [key: string]: number };
+        }>;
+      };
+      overall_condition: {
+        overall_condition_label: string;
+        average_score: number;
+        label_distribution: {
+          [key: string]: number;
+        };
+        total_assessments: number;
+        areas_of_concern: number;
+        confidence: string;
+        explanation: string;
+      };
+    }
+  }
 }
 
 
@@ -156,7 +191,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
       console.log("Fetched property data:", response.data);
-      setPropertyData(response.data.overall_analysis);
+      setPropertyData(response.data);
     } catch (error) {
       console.error("Error fetching property data:", error);
       setError("Failed to fetch property data. Please try again.");
@@ -213,7 +248,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
         // Retry after a delay
         setTimeout(fetchAnalysisResults, 5000);
       } else if (response.data) {
-        setPropertyData(response.data.overall_analysis);
+        setPropertyData(response.data);
         setAnalysisInProgress(false);
       } else {
         console.error("No data received from the server");
@@ -228,17 +263,17 @@ const PropertyAnalysis: React.FC<{}> = () => {
   };
 
   const renderAnalysis = () => {
-    if (!propertyData || !propertyData.stages) return null;
+    if (!propertyData || !propertyData.overall_analysis.stages) return null;
 
     // Extract data from propertyData
-    const overallCondition = propertyData.stages.overall_condition ?? {};
+    const overallCondition = propertyData.overall_analysis.stages.overall_condition ?? {};
     const labelDistribution = overallCondition.label_distribution ?? {};
     const totalAssessments = overallCondition.total_assessments ?? 0;
 
     // Log the data for debugging
-    console.log('Overall Condition:', overallCondition);
-    console.log('Label Distribution:', labelDistribution);
-    console.log('Total Assessments:', totalAssessments);
+    // console.log('Overall Condition:', overallCondition);
+    // console.log('Label Distribution:', labelDistribution);
+    // console.log('Total Assessments:', totalAssessments);
 
     // Check if totalAssessments is zero
     if (totalAssessments === 0) {
@@ -256,12 +291,14 @@ const PropertyAnalysis: React.FC<{}> = () => {
     // Log conditionData
     console.log('Condition Data:', conditionData);
 
-    const analyzedImages = Object.values(propertyData.stages.detailed_analysis ?? {})
+    const analyzedImages = Object.values(propertyData.overall_analysis.stages.detailed_analysis ?? {})
       .flat()
       .map((item: any) => item.image_url)
       .filter(Boolean);
     
-    const totalPropertyImages = propertyData.stages.initial_categorization.length;
+    // console.log('Analyzed Images:', analyzedImages);
+
+    const totalPropertyImages = propertyData.overall_analysis.stages.initial_categorization.length;
     const totalAnalyzedImages = analyzedImages.length;
     const totalSkippedImages = totalPropertyImages - totalAnalyzedImages;
 
@@ -269,6 +306,11 @@ const PropertyAnalysis: React.FC<{}> = () => {
     for (let i = 0; i < analyzedImages.length; i += 3) {
       groupedImages.push(analyzedImages.slice(i, i + 3));
     }
+
+    // console.log('Total Property Images:', totalPropertyImages);
+    // console.log('Total Analyzed Images:', totalAnalyzedImages);
+    // console.log('Total Skipped Images:', totalSkippedImages);
+    // console.log('Grouped Images:', groupedImages);
 
     return (
       <>
@@ -411,14 +453,17 @@ const PropertyAnalysis: React.FC<{}> = () => {
                   ))}
                 </div>
               </div>
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {propertyData.floorplan_urls.map((floorplanUrl, index) => (
-                    <img key={index} src={floorplanUrl} alt={`Floorplan ${index + 1}`} className="w-full h-auto rounded" />
-                  ))}
+              {/* Floorplans */}
+              {Array.isArray(propertyData.floorplan_urls) && propertyData.floorplan_urls.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {propertyData.floorplan_urls.map((floorplanUrl, index) => (
+                      <img key={index} src={floorplanUrl} alt={`Floorplan ${index + 1}`} className="w-full h-auto rounded" />
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </TabsContent>
 
@@ -433,20 +478,20 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 <CardContent>
                   <p className="text-3xl font-bold mb-4">
                     {/* {propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'} */}
-                    {propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'} ({propertyData.stages.overall_condition?.average_score}%)
+                    {propertyData.overall_analysis.stages.overall_condition?.overall_condition_label ?? 'N/A'} ({propertyData.overall_analysis.stages.overall_condition?.average_score}%)
                   </p>
                   <div className="space-y-2">
                     <ConditionScale 
-                      score={propertyData.stages.overall_condition?.average_score ?? 0}
-                      label={propertyData.stages.overall_condition?.overall_condition_label ?? 'N/A'}
+                      score={propertyData.overall_analysis.stages.overall_condition?.average_score ?? 0}
+                      label={propertyData.overall_analysis.stages.overall_condition?.overall_condition_label ?? 'N/A'}
                     />
                     <p>
                       <span className="font-semibold">Confidence:</span>{" "}
-                      {propertyData.stages.overall_condition?.confidence ?? 'N/A'}
+                      {propertyData.overall_analysis.stages.overall_condition?.confidence ?? 'N/A'}
                     </p>
                     <p>
                       <span className="font-semibold">Areas of Concern:</span>{" "}
-                      {propertyData.stages.overall_condition?.areas_of_concern ?? 'N/A'}
+                      {propertyData.overall_analysis.stages.overall_condition?.areas_of_concern ?? 'N/A'}
                     </p>
                   </div>
                 </CardContent>
@@ -494,9 +539,9 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-gray-700 leading-relaxed space-y-4">
-                    {propertyData.stages.overall_condition?.explanation ? (
+                    {propertyData.overall_analysis.stages.overall_condition?.explanation ? (
                       <>
-                        {propertyData.stages.overall_condition.explanation.split('\n').map((para, idx) => (
+                        {propertyData.overall_analysis.stages.overall_condition.explanation.split('\n').map((para, idx) => (
                           <p key={idx} className="mb-2 flex items-start">
                             <span>{para}</span>
                           </p>
@@ -515,7 +560,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
           {/* Detailed Analysis Tab */}
           <TabsContent value="detailed">
             <div className="space-y-8">
-              {Object.entries(propertyData.stages.detailed_analysis ?? {}).map(
+              {Object.entries(propertyData.overall_analysis.stages.detailed_analysis ?? {}).map(
                 ([key, analysis]) => (
                   <Card key={key}>
                     <CardHeader>
@@ -527,7 +572,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {(analysis as any[]).map((item) => (
+                        {Array.isArray(analysis) && analysis.map((item) => (
                           <div key={item.image_id} className="flex space-x-4">
                             <Dialog
                               onOpenChange={(open) =>

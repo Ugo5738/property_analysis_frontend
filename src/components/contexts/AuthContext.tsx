@@ -1,5 +1,4 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import {
   connectWebSocket,
   disconnectWebSocket,
@@ -19,7 +18,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
-  const location = useLocation();
+  // const location = useLocation();
 
   const connectToWebSocket = () => {
     // const websocketUrl = `ws://localhost:8000/ws/analysis-progress/`;

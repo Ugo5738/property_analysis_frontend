@@ -474,17 +474,33 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 <p className="whitespace-pre-wrap">
                   {propertyData.reviewed_description}
                 </p>
-              </div>
+              </div>              
               <div>
+                <h2 className="text-xl font-semibold mb-2">Images</h2>
+                {Array.isArray(propertyData.image_urls) && propertyData.image_urls.length > 0 ? (
+                  <p>{propertyData.image_urls.length} images</p>
+                ) : (
+                  <p>No images available.</p>
+                )}
+              </div>
+              {/* <div>
                 <h2 className="text-xl font-semibold mb-2">Images</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {propertyData.image_urls.map((imageUrl, index) => (
                     <img key={index} src={imageUrl} alt={`Image ${index + 1}`} className="w-full h-auto rounded" />
                   ))}
                 </div>
-              </div>
+              </div> */}
               {/* Floorplans */}
-              {Array.isArray(propertyData.floorplan_urls) && propertyData.floorplan_urls.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
+                {Array.isArray(propertyData.floorplan_urls) && propertyData.floorplan_urls.length > 0 ? (
+                  <p>{propertyData.floorplan_urls.length} floorplans</p>
+                ) : (
+                  <p>No floorplans available.</p>
+                )}
+              </div>
+              {/* {Array.isArray(propertyData.floorplan_urls) && propertyData.floorplan_urls.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -493,7 +509,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           </TabsContent>
 

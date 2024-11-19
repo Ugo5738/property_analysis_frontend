@@ -1,7 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import Navbar from './components/Navbar';
+import PhoneNumberInput from "./components/PhoneNumberInput";
 import PropertyAnalysis from "./components/PropertyAnalysis";
 import PropertyList from "./components/PropertyList";
-import Navbar from './components/Navbar';
 import { AuthProvider } from "./components/contexts/AuthContext";
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/" element={<PropertyList />} />
+            <Route path="/enter-phone" element={<PhoneNumberInput />} />
             <Route path="/properties" element={<PropertyList />} />
             <Route path="/analyze" element={<PropertyAnalysis />} />
             <Route path="/property-analysis/:id" element={<PropertyAnalysis />} />

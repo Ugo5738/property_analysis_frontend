@@ -18,11 +18,18 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
-  // const location = useLocation();
+  const userPhoneNumber = localStorage.getItem('userPhoneNumber');
 
   const connectToWebSocket = () => {
-    // const websocketUrl = `ws://localhost:8000/ws/analysis-progress/`;
-    const websocketUrl = `wss://3.238.8.99/ws/analysis-progress/`;
+    if (!userPhoneNumber) {
+      // Handle missing phone number (e.g., redirect to input page)
+      return;
+    }
+    // Remove the '+' sign from the phone number
+    const sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
+    // const websocketUrl = `ws://localhost:8000/analysis-progress/${userPhoneNumber}`;
+
+    const websocketUrl = `wss://3.238.8.99/ws/analysis-progress/${sanitizedPhoneNumber}/`;
     connectWebSocket(websocketUrl)
       .then(() => {
         setIsConnected(true);

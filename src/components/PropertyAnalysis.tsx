@@ -146,6 +146,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const [analysisInProgress, setAnalysisInProgress] = useState<boolean>(!!taskId);
 
   const navigate = useNavigate();
+  const userPhoneNumber = localStorage.getItem('userPhoneNumber');
   
   useEffect(() => {
     if (!isConnected) {
@@ -188,8 +189,13 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
   const fetchPropertyData = async (propertyId: string) => {
     setDataLoading(true);
+
     try {
-      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
+      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`, {
+        params: {
+          user_phone_number: userPhoneNumber,
+        },
+      });
       console.log("Fetched property data:", response.data);
       setPropertyData(response.data);
     } catch (error) {
@@ -216,12 +222,32 @@ const PropertyAnalysis: React.FC<{}> = () => {
     setPropertyData(null);
     setProgressUpdate(null);
 
+    let sanitizedPhoneNumber: string;
+
+    if (userPhoneNumber !== null) {
+      sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
+    } else {
+      // Handle the case when userPhoneNumber is null
+      // For example, you might redirect the user to a login page
+      // or set sanitizedPhoneNumber to an empty string
+      sanitizedPhoneNumber = '';
+      // Or throw an error if this should not happen
+      // throw new Error('User phone number is not available in local storage.');
+    }
+
     try {
-      const response = await axiosInstance.post(`/api/analysis/properties/analyze/`, { url }, {
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await axiosInstance.post(
+        `/api/analysis/properties/analyze/`,
+        {
+          url,
+          user_phone_number: sanitizedPhoneNumber,
         },
-      });
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       console.log("Analysis initiated, task ID:", response.data.task_id);
       // setTaskId(response.data.task_id);
 

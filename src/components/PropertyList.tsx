@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { RefreshCw, Plus } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, RefreshCw } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from "../utils/axiosConfig";
 
 interface Property {
@@ -20,8 +20,14 @@ const PropertyList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+    if (!userPhoneNumber) {
+      navigate('/enter-phone');
+      return;
+    }
     fetchProperties();
   }, []);
 
@@ -30,9 +36,18 @@ const PropertyList: React.FC = () => {
   );
 
   const fetchProperties = async () => {
+    const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+    if (!userPhoneNumber) {
+      navigate('/enter-phone');
+      return;
+    }
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/api/analysis/properties/');
+      const response = await axiosInstance.get('/api/analysis/properties/', {
+        params: {
+          user_phone_number: userPhoneNumber,
+        },
+      });
       setProperties(Array.isArray(response.data) ? response.data : response.data.results || []);
     } catch (err) {
       console.error('Error fetching properties:', err);

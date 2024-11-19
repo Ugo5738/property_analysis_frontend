@@ -43,6 +43,7 @@ interface PropertyData {
   house_type: string;
   agent: string;
   description: string;
+  reviewed_description: string;
   image_urls: string[];
   floorplan_urls: string[];
   overall_condition: {
@@ -189,7 +190,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
   const fetchPropertyData = async (propertyId: string) => {
     setDataLoading(true);
-
+    // const userPhoneNumber = "2347033588400"
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`, {
         params: {
@@ -206,17 +207,17 @@ const PropertyAnalysis: React.FC<{}> = () => {
     }
   };
 
-  const validateUrl = (url: string): boolean => {
-    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-    return urlPattern.test(url);
-  };
+  // const validateUrl = (url: string): boolean => {
+  //   const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+  //   return urlPattern.test(url);
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateUrl(url)) {
-      setError("Please enter a valid URL");
-      return;
-    }
+    // if (!validateUrl(url)) {
+    //   setError("Please enter a valid URL");
+    //   return;
+    // }
     setError("");
     setDataLoading(true);
     setPropertyData(null);
@@ -469,7 +470,10 @@ const PropertyAnalysis: React.FC<{}> = () => {
               </div>
               <div>
                 <h2 className="text-xl font-semibold mb-2">Description</h2>
-                <p>{propertyData.description}</p>
+                {/* <p>{propertyData.description}</p> */}
+                <p className="whitespace-pre-wrap">
+                  {propertyData.reviewed_description}
+                </p>
               </div>
               <div>
                 <h2 className="text-xl font-semibold mb-2">Images</h2>

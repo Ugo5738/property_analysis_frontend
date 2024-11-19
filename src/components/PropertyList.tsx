@@ -22,38 +22,29 @@ const PropertyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const userPhoneNumber = localStorage.getItem('userPhoneNumber');
-  let sanitizedPhoneNumber: string;
+  const [sanitizedPhoneNumber, setSanitizedPhoneNumber] = useState<string>('');
 
-  if (userPhoneNumber !== null) {
-    sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
-    console.log("This is the sanitized phone number", sanitizedPhoneNumber)
-  } else {
-    // Handle the case when userPhoneNumber is null
-    // For example, you might redirect the user to a login page
-    // or set sanitizedPhoneNumber to an empty string
-    sanitizedPhoneNumber = '';
-    // Or throw an error if this should not happen
-    // throw new Error('User phone number is not available in local storage.');
-  }
-
+  // Initialize sanitizedPhoneNumber from localStorage
   useEffect(() => {
-    if (!sanitizedPhoneNumber) {
+    const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+    if (userPhoneNumber !== null) {
+      const sanitizedNumber = userPhoneNumber.replace('+', '');
+      setSanitizedPhoneNumber(sanitizedNumber);
+      console.log("This is the sanitized phone number", sanitizedNumber);
+    } else {
+      // Redirect to enter phone number if not available
       navigate('/enter-phone');
-      return;
     }
-    fetchProperties();
-  }, []);
+  }, [navigate]);
 
-  const filteredProperties = properties.filter((property) =>
-    property.url.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Fetch properties when sanitizedPhoneNumber is available
+  useEffect(() => {
+    if (sanitizedPhoneNumber) {
+      fetchProperties();
+    }
+  }, [sanitizedPhoneNumber]);
 
   const fetchProperties = async () => {
-    if (!sanitizedPhoneNumber) {
-      navigate('/enter-phone');
-      return;
-    }
     try {
       setLoading(true);
       const response = await axiosInstance.get('/api/analysis/properties/', {
@@ -70,6 +61,10 @@ const PropertyList: React.FC = () => {
     }
   };
 
+  const filteredProperties = properties.filter((property) =>
+    property.url.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>

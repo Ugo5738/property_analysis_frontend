@@ -22,9 +22,23 @@ const PropertyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
+  const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+  let sanitizedPhoneNumber: string;
+
+  if (userPhoneNumber !== null) {
+    sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
+    console.log("This is the sanitized phone number", sanitizedPhoneNumber)
+  } else {
+    // Handle the case when userPhoneNumber is null
+    // For example, you might redirect the user to a login page
+    // or set sanitizedPhoneNumber to an empty string
+    sanitizedPhoneNumber = '';
+    // Or throw an error if this should not happen
+    // throw new Error('User phone number is not available in local storage.');
+  }
+
   useEffect(() => {
-    const userPhoneNumber = localStorage.getItem('userPhoneNumber');
-    if (!userPhoneNumber) {
+    if (!sanitizedPhoneNumber) {
       navigate('/enter-phone');
       return;
     }
@@ -36,8 +50,7 @@ const PropertyList: React.FC = () => {
   );
 
   const fetchProperties = async () => {
-    const userPhoneNumber = localStorage.getItem('userPhoneNumber');
-    if (!userPhoneNumber) {
+    if (!sanitizedPhoneNumber) {
       navigate('/enter-phone');
       return;
     }
@@ -45,7 +58,7 @@ const PropertyList: React.FC = () => {
       setLoading(true);
       const response = await axiosInstance.get('/api/analysis/properties/', {
         params: {
-          user_phone_number: userPhoneNumber,
+          user_phone_number: sanitizedPhoneNumber,
         },
       });
       setProperties(Array.isArray(response.data) ? response.data : response.data.results || []);

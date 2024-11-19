@@ -148,6 +148,19 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
   const navigate = useNavigate();
   const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+
+  let sanitizedPhoneNumber: string;
+  if (userPhoneNumber !== null) {
+    sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
+    console.log("This is the sanitized phone number", sanitizedPhoneNumber)
+  } else {
+    // Handle the case when userPhoneNumber is null
+    // For example, you might redirect the user to a login page
+    // or set sanitizedPhoneNumber to an empty string
+    sanitizedPhoneNumber = '';
+    // Or throw an error if this should not happen
+    // throw new Error('User phone number is not available in local storage.');
+  }
   
   useEffect(() => {
     if (!isConnected) {
@@ -190,11 +203,12 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
   const fetchPropertyData = async (propertyId: string) => {
     setDataLoading(true);
-    // const userPhoneNumber = "2347033588400"
+  
+    console.log("This is the sanitized phone number", sanitizedPhoneNumber)
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`, {
         params: {
-          user_phone_number: userPhoneNumber,
+          user_phone_number: sanitizedPhoneNumber,
         },
       });
       console.log("Fetched property data:", response.data);
@@ -222,19 +236,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
     setDataLoading(true);
     setPropertyData(null);
     setProgressUpdate(null);
-
-    let sanitizedPhoneNumber: string;
-
-    if (userPhoneNumber !== null) {
-      sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
-    } else {
-      // Handle the case when userPhoneNumber is null
-      // For example, you might redirect the user to a login page
-      // or set sanitizedPhoneNumber to an empty string
-      sanitizedPhoneNumber = '';
-      // Or throw an error if this should not happen
-      // throw new Error('User phone number is not available in local storage.');
-    }
 
     try {
       const response = await axiosInstance.post(

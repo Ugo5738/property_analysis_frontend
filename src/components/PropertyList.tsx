@@ -22,7 +22,7 @@ const PropertyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const [sanitizedPhoneNumber, setSanitizedPhoneNumber] = useState<string>('');
+  const [sanitizedPhoneNumber, setSanitizedPhoneNumber] = useState<string | null>(null);
 
   // Initialize sanitizedPhoneNumber from localStorage
   useEffect(() => {
@@ -45,6 +45,15 @@ const PropertyList: React.FC = () => {
   }, [sanitizedPhoneNumber]);
 
   const fetchProperties = async () => {
+    if (!sanitizedPhoneNumber) {
+      return (
+        <div>
+          <p>Please enter your phone number to view properties.</p>
+          <Button onClick={() => navigate('/enter-phone')}>Enter Phone Number</Button>
+        </div>
+      );
+    }
+
     try {
       setLoading(true);
       const response = await axiosInstance.get('/api/analysis/properties/', {
@@ -64,7 +73,7 @@ const PropertyList: React.FC = () => {
   const filteredProperties = properties.filter((property) =>
     property.url.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>

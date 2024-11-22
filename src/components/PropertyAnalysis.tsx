@@ -476,14 +476,14 @@ const PropertyAnalysis: React.FC<{}> = () => {
                   {propertyData.reviewed_description}
                 </p>
               </div>              
-              {/* <div>
+              <div>
                 <h2 className="text-xl font-semibold mb-2">Images</h2>
                 {Array.isArray(propertyData.image_urls) && propertyData.image_urls.length > 0 ? (
                   <p>{propertyData.image_urls.length} images</p>
                 ) : (
                   <p>No images available.</p>
                 )}
-              </div> */}
+              </div>
               <div>
                 <h2 className="text-xl font-semibold mb-2">Images</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -493,14 +493,14 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 </div>
               </div>
               {/* Floorplans */}
-              {/* <div>
+              <div>
                 <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
                 {Array.isArray(propertyData.floorplan_urls) && propertyData.floorplan_urls.length > 0 ? (
                   <p>{propertyData.floorplan_urls.length} floorplans</p>
                 ) : (
                   <p>No floorplans available.</p>
                 )}
-              </div> */}
+              </div>
               {Array.isArray(propertyData.floorplan_urls) && propertyData.floorplan_urls.length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Floorplans</h2>

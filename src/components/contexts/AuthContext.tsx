@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Remove the '+' sign from the phone number
     const sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
     // const websocketUrl = `ws://localhost:8000/analysis-progress/${userPhoneNumber}`;
-    const websocketUrl = `wss://3.238.8.99/ws/analysis-progress/${sanitizedPhoneNumber}/`;
+    const websocketUrl = `wss://api.supersami.com/ws/analysis-progress/${sanitizedPhoneNumber}/`;
 
     connectWebSocket(websocketUrl)
       .then(() => {

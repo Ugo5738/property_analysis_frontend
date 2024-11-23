@@ -2,8 +2,7 @@ import axios from 'axios';
 
 const instance = axios.create({
   // baseURL: 'http://localhost:8000',
-  baseURL: 'https://api.supersami.com',
-  // baseURL: import.meta.env.VITE_API_URL || 'https://api.resumeguru.pro',
+  baseURL: import.meta.env.VITE_BACKEND_API_URL || 'https://api.supersami.com',
   withCredentials: true, // This is important for sending cookies
 });
 

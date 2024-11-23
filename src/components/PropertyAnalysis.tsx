@@ -485,7 +485,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-semibold mb-2">Images</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {propertyData.image_urls.map((imageUrl, index) => (
                     <img key={index} src={imageUrl} alt={`Image ${index + 1}`} className="w-full h-auto rounded" />
@@ -503,7 +502,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
               </div>
               {Array.isArray(propertyData.floorplan_urls) && propertyData.floorplan_urls.length > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {propertyData.floorplan_urls.map((floorplanUrl, index) => (
                       <img key={index} src={floorplanUrl} alt={`Floorplan ${index + 1}`} className="w-full h-auto rounded" />

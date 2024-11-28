@@ -208,7 +208,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`, {
         params: {
-          user_phone_number: sanitizedPhoneNumber,
+          phone_number: sanitizedPhoneNumber,
         },
       });
       console.log("Fetched property data:", response.data);
@@ -242,7 +242,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
         `/api/analysis/properties/analyze/`,
         {
           url,
-          user_phone_number: sanitizedPhoneNumber,
+          phone_number: sanitizedPhoneNumber,
         },
         {
           headers: {

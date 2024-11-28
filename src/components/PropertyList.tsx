@@ -58,7 +58,7 @@ const PropertyList: React.FC = () => {
       setLoading(true);
       const response = await axiosInstance.get('/api/analysis/properties/', {
         params: {
-          user_phone_number: sanitizedPhoneNumber,
+          phone_number: sanitizedPhoneNumber,
         },
       });
       setProperties(Array.isArray(response.data) ? response.data : response.data.results || []);

@@ -2,6 +2,12 @@ let socket: WebSocket | null = null;
 let connectedPromise: Promise<void> | null = null;
 const messageListeners: Array<(message: any) => void> = [];
 
+// Function to set access token (optional, if needed)
+let currentAccessToken: string | null = null;
+export const setWebSocketAccessToken = (token: string) => {
+  currentAccessToken = token;
+};
+
 export const connectWebSocket = (url: string): Promise<void> => {
   if (connectedPromise) {
     return connectedPromise;
@@ -47,6 +53,8 @@ export const disconnectWebSocket = () => {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.close();
   }
+  socket = null;
+  connectedPromise = null;
 };
 
 export const isWebSocketConnected = (): boolean => {

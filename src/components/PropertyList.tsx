@@ -21,46 +21,30 @@ const PropertyList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const [, setAuthenticated] = useState<boolean>(false);
 
-  const [sanitizedPhoneNumber, setSanitizedPhoneNumber] = useState<string | null>(null);
-
-  // Initialize sanitizedPhoneNumber from localStorage
   useEffect(() => {
-    const userPhoneNumber = localStorage.getItem('userPhoneNumber');
-    if (userPhoneNumber !== null) {
-      const sanitizedNumber = userPhoneNumber.replace('+', '');
-      setSanitizedPhoneNumber(sanitizedNumber);
-      console.log("This is the sanitized phone number", sanitizedNumber);
-    } else {
-      // Redirect to enter phone number if not available
-      navigate('/enter-phone');
-    }
+    const checkAuthentication = async () => {
+      try {
+        const response = await axiosInstance.get('/api/auth/check-authenticated/');
+        if (response.status === 200) {
+          setAuthenticated(true);
+          fetchProperties();
+        } else {
+          navigate('/enter-phone');
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        navigate('/enter-phone');
+      }
+    };
+    checkAuthentication();
   }, [navigate]);
 
-  // Fetch properties when sanitizedPhoneNumber is available
-  useEffect(() => {
-    if (sanitizedPhoneNumber) {
-      fetchProperties();
-    }
-  }, [sanitizedPhoneNumber]);
-
   const fetchProperties = async () => {
-    if (!sanitizedPhoneNumber) {
-      return (
-        <div>
-          <p>Please enter your phone number to view properties.</p>
-          <Button onClick={() => navigate('/enter-phone')}>Enter Phone Number</Button>
-        </div>
-      );
-    }
-
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/api/analysis/properties/', {
-        params: {
-          phone_number: sanitizedPhoneNumber,
-        },
-      });
+      const response = await axiosInstance.get('/api/analysis/properties/', {});
       setProperties(Array.isArray(response.data) ? response.data : response.data.results || []);
     } catch (err) {
       console.error('Error fetching properties:', err);

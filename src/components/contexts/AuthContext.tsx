@@ -2,12 +2,18 @@ import React, { createContext, ReactNode, useContext, useEffect, useState } from
 import {
   connectWebSocket,
   disconnectWebSocket,
+  setWebSocketAccessToken,
 } from "../../services/websocketServices";
+import axiosInstance from "../../utils/axiosConfig";
+
 
 interface AuthContextType {
   isConnected: boolean;
   connectToWebSocket: () => void;
   disconnectFromWebSocket: () => void;
+  loginWithPhone: (phoneNumber: string) => Promise<void>;
+  loginWithToken: (token: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,18 +24,19 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
-  const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+  // const userPhoneNumber = localStorage.getItem('userPhoneNumber');
 
   const connectToWebSocket = () => {
-    if (!userPhoneNumber) {
-      // Handle missing phone number (e.g., redirect to input page)
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      console.error('Access token not found. Cannot connect to WebSocket.');
       return;
     }
-    // Remove the '+' sign from the phone number
-    const sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
-    // const websocketUrl = `ws://localhost:8000/analysis-progress/${userPhoneNumber}`;
-    const websocketUrl = `wss://api.supersami.com/ws/analysis-progress/${sanitizedPhoneNumber}/`;
-
+    setWebSocketAccessToken(accessToken); // Pass token to WebSocket service
+    
+    // const websocketUrl = `ws://localhost:8000/ws/analysis-progress/?token=${accessToken}`;
+    const websocketUrl = `wss://api.supersami.com/ws/analysis-progress/?token=${accessToken}`;
+    
     connectWebSocket(websocketUrl)
       .then(() => {
         setIsConnected(true);
@@ -45,8 +52,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsConnected(false);
   };
 
+  const loginWithPhone = async (phoneNumber: string) => {
+    try {
+      const response = await axiosInstance.post('/api/auth/authenticate-phone/', { phone_number: phoneNumber });
+      const { access, refresh, message } = response.data;
+      localStorage.setItem('accessToken', access);
+      localStorage.setItem('refreshToken', refresh);
+      console.log(message);
+      connectToWebSocket(); // Connect WebSocket after login
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+
+  const loginWithToken = async (token: string) => {
+    try {
+      const response = await axiosInstance.post('/api/auth/authenticate-token/', { token });
+      const { access, refresh, message } = response.data;
+      localStorage.setItem('accessToken', access);
+      localStorage.setItem('refreshToken', refresh);
+      console.log(message);
+      connectToWebSocket(); // Connect WebSocket after authentication
+    } catch (error) {
+      console.error('Authentication with token failed:', error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axiosInstance.post('/api/auth/logout/'); // Implement logout endpoint in backend
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      disconnectFromWebSocket();
+      // Optionally, redirect to login page
+    }
+  };
+
   useEffect(() => {
-    connectToWebSocket();
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      connectToWebSocket();
+    }
     return () => {
       disconnectFromWebSocket();
     };
@@ -58,6 +109,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isConnected,
         connectToWebSocket,
         disconnectFromWebSocket,
+        loginWithPhone,
+        loginWithToken,
+        logout,
       }}
     >
       {children}

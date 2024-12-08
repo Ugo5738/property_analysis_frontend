@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -130,7 +130,6 @@ interface ProgressUpdate {
 
 
 const PropertyAnalysis: React.FC<{}> = () => {
-  // const { id, taskId: routeTaskId } = useParams<{ id: string; taskId?: string }>();
   const { id, taskId } = useParams<{ id: string; taskId?: string }>();
   const [url, setUrl] = useState<string>("");
   const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
@@ -139,37 +138,66 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [progressUpdate, setProgressUpdate] = useState<ProgressUpdate | null>(null);
   const [fetchingResults, setFetchingResults] = useState(false);
-  // const [taskId, setTaskId] = useState<string | null>(routeTaskId || null);
   const { isConnected, connectToWebSocket } = useAuth();
 
   const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
   const [analysisInProgress, setAnalysisInProgress] = useState<boolean>(!!taskId);
+  const [authenticated, setAuthenticated] = useState<boolean>(false);
 
   const navigate = useNavigate();
-  const userPhoneNumber = localStorage.getItem('userPhoneNumber');
+  const location = useLocation();  
+  const { loginWithToken } = useAuth();
+  const queryParams = new URLSearchParams(location.search);
+  const whatsappToken = queryParams.get('token');
 
-  let sanitizedPhoneNumber: string;
-  if (userPhoneNumber !== null) {
-    sanitizedPhoneNumber = userPhoneNumber.replace('+', '');
-    console.log("This is the sanitized phone number", sanitizedPhoneNumber)
-  } else {
-    // Handle the case when userPhoneNumber is null
-    // For example, you might redirect the user to a login page
-    // or set sanitizedPhoneNumber to an empty string
-    sanitizedPhoneNumber = '';
-    // Or throw an error if this should not happen
-    // throw new Error('User phone number is not available in local storage.');
-  }
+  useEffect(() => {
+    if (whatsappToken) {
+      try {
+        loginWithToken(whatsappToken).then(() => {
+          // Proceed to fetch property data
+          if (id) {
+            fetchPropertyData(id);
+          }
+        })
+        // Authentication successful
+        setAuthenticated(true);
+      } catch (error) {
+        console.error('Token authentication failed:', error);
+        setError('Authentication failed. Please try again.');
+      };
+    } else {
+      // No token present
+      // Check if user is authenticated via session
+      const checkAuthentication = async () => {
+        try {
+          const response = await axiosInstance.get('/api/auth/check-authenticated/');
+          if (response.status === 200) {
+            setAuthenticated(true);
+            if (id) {
+              fetchPropertyData(id);
+            }
+          } else {
+            // Not authenticated
+            navigate('/enter-phone');
+          }
+        } catch (error) {
+          console.error('Error checking authentication:', error);
+          navigate('/enter-phone');
+        }
+      };
+      checkAuthentication();
+    }
+  }, [whatsappToken, id, navigate]);
   
   useEffect(() => {
     if (!isConnected) {
       connectToWebSocket();
     }
 
-    if (id) {
-      fetchPropertyData(id);
-    }
+    // if (id) {
+    //   fetchPropertyData(id);
+    // }
 
     if (taskId) {
       setAnalysisInProgress(true);
@@ -204,12 +232,12 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const fetchPropertyData = async (propertyId: string) => {
     setDataLoading(true);
   
-    console.log("This is the sanitized phone number", sanitizedPhoneNumber)
+    // console.log("This is the sanitized phone number", sanitizedPhoneNumber)
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`, {
-        params: {
-          phone_number: sanitizedPhoneNumber,
-        },
+        // params: {
+        //   phone_number: sanitizedPhoneNumber,
+        // },
       });
       console.log("Fetched property data:", response.data);
       setPropertyData(response.data);
@@ -221,17 +249,8 @@ const PropertyAnalysis: React.FC<{}> = () => {
     }
   };
 
-  // const validateUrl = (url: string): boolean => {
-  //   const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-  //   return urlPattern.test(url);
-  // };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // if (!validateUrl(url)) {
-    //   setError("Please enter a valid URL");
-    //   return;
-    // }
     setError("");
     setDataLoading(true);
     setPropertyData(null);
@@ -241,8 +260,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
       const response = await axiosInstance.post(
         `/api/analysis/properties/analyze/`,
         {
-          url,
-          phone_number: sanitizedPhoneNumber,
+          url
         },
         {
           headers: {
@@ -683,24 +701,28 @@ const PropertyAnalysis: React.FC<{}> = () => {
     <div className="container mx-auto p-4 max-w-6xl">
       {/* Analysis Form */}
       {!id && (
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Input
-              type="text"
-              value={url}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
-              placeholder="Enter property URL"
-              className="flex-grow"
-            />
-            <Button
-              type="submit"
-              disabled={dataLoading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
-              {dataLoading ? "Analyzing..." : "Analyze"}
-            </Button>
-          </div>
-        </form>
+        authenticated ? (
+          <form onSubmit={handleSubmit} className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Input
+                type="text"
+                value={url}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
+                placeholder="Enter property URL"
+                className="flex-grow"
+              />
+              <Button
+                type="submit"
+                disabled={dataLoading}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                {dataLoading ? "Analyzing..." : "Analyze"}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div>Please sign in to analyze a property.</div>
+        )
       )}
 
       {/* Error Alert */}

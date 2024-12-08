@@ -3,22 +3,31 @@ import { Input } from '@/components/ui/input';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../components/contexts/AuthContext";
 
 const PhoneNumberInput: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { loginWithPhone } = useAuth();
 
   const validatePhoneNumber = (number: string): boolean => {
     const phoneNumberObject = parsePhoneNumberFromString(number);
     return phoneNumberObject ? phoneNumberObject.isValid() : false;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validatePhoneNumber(phoneNumber)) {
-      localStorage.setItem('userPhoneNumber', phoneNumber);
-      navigate('/properties');
+      try {
+        const formattedPhoneNumber = phoneNumber.replace('+', '');
+        console.log(formattedPhoneNumber)
+        await loginWithPhone(formattedPhoneNumber);
+        navigate('/properties');
+      } catch(error) {
+        console.error('Authentication failed:', error);
+        setError('Authentication failed. Please try again.');
+      };
     } else {
       setError('Please enter a valid international phone number, e.g., +123456789.');
     }

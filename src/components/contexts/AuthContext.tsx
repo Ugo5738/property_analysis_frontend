@@ -81,8 +81,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+
     try {
-      await axiosInstance.post('/api/auth/logout/'); // Implement logout endpoint in backend
+      await axiosInstance.post('/api/auth/logout/', { refresh: refreshToken });
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
@@ -90,6 +92,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('refreshToken');
       disconnectFromWebSocket();
       // Optionally, redirect to login page
+
+      // Optionally redirect to login page
+      window.location.href = '/enter-phone';
     }
   };
 

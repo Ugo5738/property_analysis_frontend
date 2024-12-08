@@ -138,7 +138,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [progressUpdate, setProgressUpdate] = useState<ProgressUpdate | null>(null);
   const [fetchingResults, setFetchingResults] = useState(false);
-  const { isConnected, connectToWebSocket, logout } = useAuth();
+  const { isConnected, connectToWebSocket } = useAuth();
 
   const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
@@ -699,14 +699,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
-      {authenticated && (
-        <div className="flex justify-end mb-4">
-          <Button variant="outline" onClick={logout}>
-            Logout
-          </Button>
-        </div>
-      )}
-      
       {/* Analysis Form */}
       {!id && (
         authenticated ? (

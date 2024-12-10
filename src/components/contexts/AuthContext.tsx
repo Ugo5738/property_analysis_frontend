@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // const websocketUrl = `ws://localhost:8000/ws/analysis-progress/?token=${accessToken}`;
     const websocketUrl = `wss://api.supersami.com/ws/analysis-progress/?token=${accessToken}`;
+    // const websocketUrl = `wss://api-test.supersami.com/ws/analysis-progress/?token=${accessToken}`;
     
     connectWebSocket(websocketUrl)
       .then(() => {

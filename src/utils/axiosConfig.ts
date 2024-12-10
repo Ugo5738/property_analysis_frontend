@@ -3,6 +3,7 @@ import axios from 'axios';
 const axiosInstance = axios.create({
   // baseURL: 'http://localhost:8000',
   baseURL: import.meta.env.VITE_BACKEND_API_URL || 'https://api.supersami.com',
+  // baseURL: import.meta.env.VITE_BACKEND_API_URL || 'https://api-test.supersami.com',
   withCredentials: true, // Important for sending cookies if needed
 });
 

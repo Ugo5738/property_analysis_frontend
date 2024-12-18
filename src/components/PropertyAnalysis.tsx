@@ -381,11 +381,9 @@ const PropertyAnalysis: React.FC<{}> = () => {
         <div className="mb-8">
           <Carousel className="relative">
             <CarouselContent>
-              {/* {analyzedImages.map((imageUrl, index) => ( */}
               {groupedImages.map((imageGroup, index) => (
                 <CarouselItem key={index}>
                   <div className="flex space-x-4">
-                  {/* <div className="w-full h-64 flex justify-center items-center bg-gray-100"> */}
                   {imageGroup.map((imageUrl, idx) => (
                     <div
                       key={idx}
@@ -395,7 +393,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
                       src={imageUrl}
                       alt={`Property image ${index + 1}`}
                       className="max-h-full object-contain rounded"
-                      // className="w-full h-64 object-cover rounded"
                     />
                   </div>
                   ))}
@@ -735,7 +732,11 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
       {/* Progress Indicator */}
       {analysisInProgress && progressUpdate && (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
+          <p className="text-gray-700 text-center px-4 max-w-md">
+            We have a team of AI agents analyzing your property, this should be finished in a few minutes, 
+            you will receive a message on WhatsApp when the analysis is ready.
+          </p>
           <div className="w-full max-w-md px-4">
             <p className="mb-4 text-gray-700 text-center">
               {progressUpdate.stage.charAt(0).toUpperCase() + progressUpdate.stage.slice(1)}: {progressUpdate.message}

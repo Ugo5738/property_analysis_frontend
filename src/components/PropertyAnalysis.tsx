@@ -379,31 +379,34 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
         {/* Image Carousel */}
         <div className="mb-8">
-          <Carousel className="relative">
+          <Carousel className="relative w-full">
             <CarouselContent>
               {groupedImages.map((imageGroup, index) => (
                 <CarouselItem key={index}>
-                  <div className="flex space-x-4">
+                  <div className="flex gap-2 md:gap-4">
                   {imageGroup.map((imageUrl, idx) => (
                     <div
                       key={idx}
-                      className="w-1/3 h-64 flex justify-center items-center bg-gray-100"
+                      className="relative w-full md:w-1/3"
                     >
-                    <img
-                      src={imageUrl}
-                      alt={`Property image ${index + 1}`}
-                      className="max-h-full object-contain rounded"
-                    />
+                    {/* <div className="relative pt-[75%] md:pt-[66.67%]"> */}
+                    <div className="relative h-48 sm:h-64 w-full">
+                      <img
+                        src={imageUrl}
+                        alt={`Property image ${index + 1}`}
+                        className="absolute inset-0 w-full h-full object-cover rounded"
+                      />
+                    </div>
                   </div>
                   ))}
                 </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow">
+            <CarouselPrevious className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white" >
               {/* Left Arrow Icon */}
             </CarouselPrevious>
-            <CarouselNext className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow">
+            <CarouselNext className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white" >
               {/* Right Arrow Icon */}
             </CarouselNext>
             {/* Indicators (Optional) */}

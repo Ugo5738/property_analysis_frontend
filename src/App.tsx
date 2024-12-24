@@ -20,6 +20,8 @@ function App() {
             <Route path="/analyze" element={<PropertyAnalysis />} />
             <Route path="/property-analysis/:id" element={<PropertyAnalysis />} />
             <Route path="/property-analysis/:id/:taskId" element={<PropertyAnalysis />} />
+            {/* Shared read-only route */}
+            <Route path="/property-analysis/shared/:id/:taskId/:shareToken" element={<PropertyAnalysis />} />
           </Routes>
         </div>
       </AuthProvider>

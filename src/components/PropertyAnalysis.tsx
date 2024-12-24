@@ -130,7 +130,7 @@ interface ProgressUpdate {
 
 
 const PropertyAnalysis: React.FC<{}> = () => {
-  const { id, taskId } = useParams<{ id: string; taskId?: string }>();
+  const { id, taskId, shareToken } = useParams<{ id: string; taskId?: string; shareToken?: string }>();
   const [url, setUrl] = useState<string>("");
   const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
   const [error, setError] = useState<string>("");
@@ -151,7 +151,16 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const queryParams = new URLSearchParams(location.search);
   const whatsappToken = queryParams.get('token');
 
+  // Check if we are in shared read-only mode:
+  const isSharedView = !!shareToken; // If shareToken is present in URL, it's a shared link.
+
   useEffect(() => {
+    // If we are in shared mode, we do NOT attempt to log in or authenticate the user.
+    if (isSharedView && id && shareToken && taskId) {
+      fetchSharedPropertyData(id, shareToken);
+      return;
+    }
+
     if (whatsappToken) {
       try {
         loginWithToken(whatsappToken).then(() => {
@@ -188,18 +197,14 @@ const PropertyAnalysis: React.FC<{}> = () => {
       };
       checkAuthentication();
     }
-  }, [whatsappToken, id, navigate]);
+  }, [whatsappToken, id, navigate, isSharedView, shareToken, taskId, loginWithToken]);
   
   useEffect(() => {
-    if (!isConnected) {
+    if (!isConnected && !isSharedView) {
       connectToWebSocket();
     }
 
-    // if (id) {
-    //   fetchPropertyData(id);
-    // }
-
-    if (taskId) {
+    if (!isSharedView && taskId) {
       setAnalysisInProgress(true);
       const handleMessage = (message: any) => {
         console.log("Received WebSocket message:", message);
@@ -222,7 +227,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
         removeMessageListener(handleMessage);
       };
     }
-  }, [id, isConnected, connectToWebSocket, taskId]);
+  }, [id, isConnected, connectToWebSocket, taskId, isSharedView]);
 
   // Optionally, update analysisInProgress when taskId changes
   useEffect(() => {
@@ -232,18 +237,31 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const fetchPropertyData = async (propertyId: string) => {
     setDataLoading(true);
   
-    // console.log("This is the sanitized phone number", sanitizedPhoneNumber)
     try {
-      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`, {
-        // params: {
-        //   phone_number: sanitizedPhoneNumber,
-        // },
-      });
+      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
       console.log("Fetched property data:", response.data);
       setPropertyData(response.data);
     } catch (error) {
       console.error("Error fetching property data:", error);
       setError("Failed to fetch property data. Please try again.");
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
+  const fetchSharedPropertyData = async (propertyId: string, shareToken: string) => {
+    setDataLoading(true);
+    try {
+      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/shared/${shareToken}/`);
+      console.log("Fetched shared property data:", response.data);
+      setPropertyData(response.data);
+      // Note: No WebSocket or progress updates in shared mode,
+      // this is a static view of the completed analysis.
+      setAnalysisInProgress(false);
+      setAuthenticated(false); // They are not logged in as the owner.
+    } catch (error) {
+      console.error("Error fetching shared property data:", error);
+      setError("Failed to fetch shared property data. Please try again.");
     } finally {
       setDataLoading(false);
     }
@@ -286,7 +304,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
     setFetchingResults(true);
     try {
       const response = await axiosInstance.get(`/api/analysis/properties/${taskId}/results/`);
-      // console.log("Analysis results received:", response.data);
       if (response.status === 202) {
         // Analysis not yet complete
         setAnalysisStatus(response.data.status);
@@ -700,7 +717,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       {/* Analysis Form */}
-      {!id && (
+      {!isSharedView && !id && (
         authenticated ? (
           <form onSubmit={handleSubmit} className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -734,7 +751,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
       )}
 
       {/* Progress Indicator */}
-      {analysisInProgress && progressUpdate && (
+      {!isSharedView && analysisInProgress && progressUpdate && (
         <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
           <p className="text-gray-700 text-center px-4 max-w-md">
             We have a team of AI agents analyzing your property, this should be finished in a few minutes, 
@@ -758,7 +775,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
       )}
 
       {/* Fetching Results Indicator */}
-      {fetchingResults && (
+      {!isSharedView && fetchingResults && (
         <div className="mb-6">
           <p className="mb-2 text-gray-700">
             Fetching analysis results... Status: {analysisStatus}

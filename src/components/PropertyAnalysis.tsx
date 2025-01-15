@@ -914,12 +914,13 @@ const PropertyAnalysis: React.FC<{}> = () => {
       )}
 
       {/* Progress Indicator */}
-      {!isSharedView && analysisInProgress && progressUpdate && (
+      {!isSharedView && analysisInProgress && (
         <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
           <p className="text-gray-700 text-center px-4 max-w-md">
             We have a team of AI agents analyzing your property, this should be finished in a few minutes, 
             you will receive a message on WhatsApp when the analysis is ready.
           </p>
+          {progressUpdate && (
           <div className="w-full max-w-md px-4">
             <p className="mb-4 text-gray-700 text-center">
               {progressUpdate.stage.charAt(0).toUpperCase() + progressUpdate.stage.slice(1)}: {progressUpdate.message}
@@ -934,6 +935,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
               />
             </div>
           </div>
+          )}
         </div>
       )}
 

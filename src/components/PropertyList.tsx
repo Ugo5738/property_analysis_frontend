@@ -44,7 +44,7 @@ const PropertyList: React.FC = () => {
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/api/analysis/properties/', {});
+      const response = await axiosInstance.get('/api/orchestration/properties/', {});
       setProperties(Array.isArray(response.data) ? response.data : response.data.results || []);
     } catch (err) {
       console.error('Error fetching properties:', err);

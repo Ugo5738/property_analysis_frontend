@@ -117,8 +117,26 @@ interface PropertyData {
         confidence: string;
         explanation: string;
       };
-    }
-  }
+      floorplan_analysis?: Array<{
+        url: string;
+        analysis: {
+          color: string;
+          dimension_type: string;
+          drawing_type: string;
+          background_image_in_blueprint: boolean;
+          number_buildings: number;
+          number_floors: number;
+          bay_windows: boolean;
+          curved_walls_windows: boolean;
+          garden: boolean;
+          total_square_area: string;
+          main_building_square_area: string;
+          compass_direction: string;
+          key_observations: string;
+        };
+      }>;
+    };
+  };
 }
 
 
@@ -238,7 +256,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
     setDataLoading(true);
   
     try {
-      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/`);
+      const response = await axiosInstance.get(`/api/orchestration/properties/${propertyId}/`);
       console.log("Fetched property data:", response.data);
       setPropertyData(response.data);
     } catch (error) {
@@ -252,7 +270,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const fetchSharedPropertyData = async (propertyId: string, shareToken: string) => {
     setDataLoading(true);
     try {
-      const response = await axiosInstance.get(`/api/analysis/properties/${propertyId}/shared/${shareToken}/`);
+      const response = await axiosInstance.get(`/api/orchestration/properties/${propertyId}/shared/${shareToken}/`);
       console.log("Fetched shared property data:", response.data);
       setPropertyData(response.data);
       // Note: No WebSocket or progress updates in shared mode,
@@ -276,7 +294,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
     try {
       const response = await axiosInstance.post(
-        `/api/analysis/properties/analyze/`,
+        `/api/orchestration/properties/analyze/`,
         {
           url
         },
@@ -303,7 +321,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
     setFetchingResults(true);
     try {
-      const response = await axiosInstance.get(`/api/analysis/properties/${taskId}/results/`);
+      const response = await axiosInstance.get(`/api/orchestration/properties/${taskId}/results/`);
       if (response.status === 202) {
         // Analysis not yet complete
         setAnalysisStatus(response.data.status);
@@ -394,7 +412,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
           </a>
         </div>
 
-        {/* Image Carousel */}
+        {/* Main Image Carousel (Analyzed Images) */}
         <div className="mb-8">
           <Carousel className="relative w-full">
             <CarouselContent>
@@ -441,24 +459,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
           </Alert>
         )}
 
-        {/* {skippedImages.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Skipped Images</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {skippedImages.map((img, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <img
-                    src=<Provide the image URL here>
-                    alt={`Skipped Image ${img.image_id}`}
-                    className="w-full h-40 object-cover rounded mb-2"
-                  />
-                  <p className="text-gray-600 text-sm">Category: {img.category}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )} */}
-
         {/* Tabs */}
         <Tabs defaultValue="summary" className="w-full">
           <TabsList className="w-full flex justify-center mb-6">
@@ -470,6 +470,9 @@ const PropertyAnalysis: React.FC<{}> = () => {
             </TabsTrigger>
             <TabsTrigger value="property_data" className="flex-1">
               Property Data
+            </TabsTrigger>
+            <TabsTrigger value="floorplan" className="flex-1">
+              Floorplan Analysis
             </TabsTrigger>
           </TabsList>
           
@@ -708,6 +711,166 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 )
               )}
             </div>
+          </TabsContent>
+
+          {/* Floorplans */}
+          <TabsContent value="">
+            <div>
+                <h2 className="text-xl font-semibold mb-2">Floorplans</h2>
+                {Array.isArray(propertyData.floorplan_urls) &&
+                propertyData.floorplan_urls.length > 0 ? (
+                  <p>{propertyData.floorplan_urls.length} floorplans</p>
+                ) : (
+                  <p>No floorplans available.</p>
+                )}
+            </div>
+            <div>
+              {Array.isArray(propertyData.floorplan_urls) &&
+                propertyData.floorplan_urls.length > 0 && (
+                  <div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {propertyData.floorplan_urls.map((floorplanUrl, index) => (
+                        <img
+                          key={index}
+                          src={floorplanUrl}
+                          alt={`Floorplan ${index + 1}`}
+                          className="w-full h-auto rounded"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+          </TabsContent>
+          
+          {/* Floorplan Analysis Tab */}
+          <TabsContent value="floorplan">
+            {propertyData?.overall_analysis?.stages?.floorplan_analysis && propertyData.overall_analysis.stages.floorplan_analysis.length > 0 ? (
+              <>
+                {/* Carousel for Floorplan Images */}
+                <div className="mb-8">
+                  <Carousel className="relative w-full">
+                    <CarouselContent>
+                      {propertyData.overall_analysis.stages.floorplan_analysis.map(
+                        (floorplan, index) => (
+                          <CarouselItem key={index}>
+                            <div className="relative h-48 sm:h-64 w-full">
+                              <img
+                                src={floorplan.url}
+                                alt={`Floorplan ${index + 1}`}
+                                className="absolute inset-0 w-full h-full object-contain rounded"
+                              />
+                            </div>
+                          </CarouselItem>
+                          )
+                        )}
+                      </CarouselContent>
+                      <CarouselPrevious className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white" />
+                    <CarouselNext className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 shadow hover:bg-white" />
+                  </Carousel>
+                </div>
+
+                {/* Floorplan analysis data (one card per floorplan) */}
+                {propertyData.overall_analysis.stages.floorplan_analysis.map(
+                  (floorplan, index) => (
+                    <Card key={index} className="mb-6">
+                      <CardHeader>
+                        <CardTitle>
+                          Floorplan {index + 1} Analysis
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <p>
+                              <span className="font-semibold">Color:</span>{" "}
+                              {floorplan.analysis.color ?? "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">
+                                Dimension Type:
+                              </span>{" "}
+                              {floorplan.analysis.dimension_type ?? "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Drawing Type:</span>{" "}
+                              {floorplan.analysis.drawing_type ?? "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">
+                                Background in Blueprint:
+                              </span>{" "}
+                              {floorplan.analysis.background_image_in_blueprint
+                                ? "Yes"
+                                : "No"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">
+                                Number of Buildings:
+                              </span>{" "}
+                              {floorplan.analysis.number_buildings ?? "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p>
+                              <span className="font-semibold">
+                                Number of Floors:
+                              </span>{" "}
+                              {floorplan.analysis.number_floors ?? "N/A"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Bay Windows:</span>{" "}
+                              {floorplan.analysis.bay_windows ? "Yes" : "No"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">
+                                Curved Walls/Windows:
+                              </span>{" "}
+                              {floorplan.analysis.curved_walls_windows
+                                ? "Yes"
+                                : "No"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Garden:</span>{" "}
+                              {floorplan.analysis.garden ? "Yes" : "No"}
+                            </p>
+                            <p>
+                              <span className="font-semibold">
+                                Total Square Area:
+                              </span>{" "}
+                              {floorplan.analysis.total_square_area ?? "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <p>
+                            <span className="font-semibold">
+                              Main Building Sq. Area:
+                            </span>{" "}
+                            {floorplan.analysis.main_building_square_area ??
+                              "N/A"}
+                          </p>
+                          <p>
+                            <span className="font-semibold">
+                              Compass Direction:
+                            </span>{" "}
+                            {floorplan.analysis.compass_direction ?? "N/A"}
+                          </p>
+                          <p className="mt-2">
+                            <span className="font-semibold">
+                              Key Observations:
+                            </span>{" "}
+                            {floorplan.analysis.key_observations ?? "N/A"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                )}
+              </>
+              ) : (
+                <p>No floorplan analysis data available.</p>
+              )}
           </TabsContent>
         </Tabs>
       </>

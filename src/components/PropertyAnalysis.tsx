@@ -319,18 +319,28 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const fetchAnalysisResults = async () => {
     if (!taskId) return;
 
-    setFetchingResults(true);
+    // setFetchingResults(true);
     try {
       const response = await axiosInstance.get(`/api/orchestration/properties/${taskId}/results/`);
       if (response.status === 202) {
         // Analysis not yet complete
         setAnalysisStatus(response.data.status);
         setAnalysisProgress(response.data.progress);
+
+        // Show fetching state now (only while we continue polling)
+        setFetchingResults(true);
+
         // Retry after a delay
-        setTimeout(fetchAnalysisResults, 5000);
+        // setTimeout(fetchAnalysisResults, 5000);
       } else if (response.data) {
+        // Final results
         setPropertyData(response.data);
         setAnalysisInProgress(false);
+        
+        // Analysis is done, so no more fetching
+        setFetchingResults(false);
+        // Optionally: setAnalysisProgress(100);
+        // Optionally: setAnalysisStatus('complete');
       } else {
         console.error("No data received from the server");
         setError("No analysis results received. Please try again.");
@@ -338,8 +348,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
     } catch (error) {
       console.error("Error fetching analysis results:", error);
       setError("Failed to fetch analysis results. Please try again.");
-    } finally {
-      setFetchingResults(false);
     }
   };
 

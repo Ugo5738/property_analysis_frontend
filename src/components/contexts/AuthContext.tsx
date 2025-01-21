@@ -100,34 +100,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    // 1) Always fetch CSRF cookie on first load
-    axiosInstance
-      .get("/api/auth/get-csrf-token/")
-      .then(() => {
-        console.log("CSRF cookie set successfully.");
-
-        // 2) Check if there is a "token" in the URL (one-click login)
-        const searchParams = new URLSearchParams(window.location.search);
-        const urlToken = searchParams.get("token");
-
-        if (urlToken) {
-          // If user came via WhatsApp link with ?token=..., auto-login
-          loginWithToken(urlToken).catch((err) =>
-            console.error("Failed to login with URL token:", err)
-          );
-        } else {
-          // 3) Otherwise, if user already has an accessToken, connect the socket
-          const storedToken = localStorage.getItem("accessToken");
-          if (storedToken) {
-            connectToWebSocket();
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to fetch CSRF token:", error);
-      });
-
-    // Cleanup
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      connectToWebSocket();
+    }
     return () => {
       disconnectFromWebSocket();
     };

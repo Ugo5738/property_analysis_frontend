@@ -343,7 +343,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
         setFetchingResults(true);
         
         // Retry after a delay
-        setTimeout(fetchAnalysisResults, 10000);
+        setTimeout(fetchAnalysisResults, 5000);
       } else if (response.data) {
         // Final results
         setPropertyData(response.data);

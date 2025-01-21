@@ -31,6 +31,15 @@ import { onMessage, removeMessageListener } from "../services/websocketServices"
 import CustomTick from './CustomTick';
 
 
+interface SentimentAnalysis {
+  key_phrases: string[];
+  tone_analysis: { [key: string]: number };
+  sentiment_score: number;
+  overall_sentiment: string;
+  improvement_suggestions: string[];
+  marketing_effectiveness: string;
+}
+
 interface PropertyData {
   id: number;
   url: string;
@@ -46,6 +55,7 @@ interface PropertyData {
   reviewed_description: string;
   image_urls: string[];
   floorplan_urls: string[];
+  sentiment_analysis?: SentimentAnalysis;
   overall_condition: {
     areas_of_concern: number;
     average_score: number;
@@ -161,6 +171,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
   const [analysisStatus, setAnalysisStatus] = useState<string>("");
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
   const [analysisInProgress, setAnalysisInProgress] = useState<boolean>(!!taskId);
+  const [analysisComplete, setAnalysisComplete] = useState<boolean>(false);
   const [authenticated, setAuthenticated] = useState<boolean>(false);
 
   const navigate = useNavigate();
@@ -222,7 +233,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
       connectToWebSocket();
     }
 
-    if (!isSharedView && taskId) {
+    if (!isSharedView && taskId && !analysisComplete) {
       setAnalysisInProgress(true);
       const handleMessage = (message: any) => {
         console.log("Received WebSocket message:", message);
@@ -234,6 +245,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
           } else if (message.message.stage === 'complete') {
             console.log("Analysis complete, fetching results...");
             setAnalysisInProgress(false);
+            setAnalysisComplete(true);
             fetchAnalysisResults();
           }
         }
@@ -329,18 +341,17 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
         // Show fetching state now (only while we continue polling)
         setFetchingResults(true);
-
+        
         // Retry after a delay
-        // setTimeout(fetchAnalysisResults, 5000);
+        setTimeout(fetchAnalysisResults, 10000);
       } else if (response.data) {
         // Final results
         setPropertyData(response.data);
         setAnalysisInProgress(false);
         
         // Analysis is done, so no more fetching
+        setAnalysisComplete(true);
         setFetchingResults(false);
-        // Optionally: setAnalysisProgress(100);
-        // Optionally: setAnalysisStatus('complete');
       } else {
         console.error("No data received from the server");
         setError("No analysis results received. Please try again.");
@@ -521,7 +532,60 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 <p className="whitespace-pre-wrap">
                   {propertyData.reviewed_description}
                 </p>
-              </div>              
+              </div>    
+              {propertyData.sentiment_analysis && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">Sentiment Analysis</h2>
+
+                  {/* Overall sentiment & score */}
+                  <p className="font-semibold">Overall Sentiment: {propertyData.sentiment_analysis.overall_sentiment}</p>
+                  <p className="mb-2">Score: {propertyData.sentiment_analysis.sentiment_score}</p>
+
+                  {/* Tone analysis */}
+                  {propertyData.sentiment_analysis.tone_analysis && (
+                    <div className="mb-2">
+                      <p className="font-semibold">Tone Analysis:</p>
+                      {Object.entries(propertyData.sentiment_analysis.tone_analysis).map(([toneKey, toneValue]) => (
+                        <p key={toneKey}>
+                          {toneKey}: {toneValue}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Key phrases */}
+                  {Array.isArray(propertyData.sentiment_analysis.key_phrases) && (
+                    <div className="mb-2">
+                      <p className="font-semibold">Key Phrases:</p>
+                      <ul className="list-disc ml-4">
+                        {propertyData.sentiment_analysis.key_phrases.map((phrase, index) => (
+                          <li key={index}>{phrase}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Improvement suggestions */}
+                  {Array.isArray(propertyData.sentiment_analysis.improvement_suggestions) && (
+                    <div className="mb-2">
+                      <p className="font-semibold">Improvement Suggestions:</p>
+                      <ul className="list-disc ml-4">
+                        {propertyData.sentiment_analysis.improvement_suggestions.map((suggestion, index) => (
+                          <li key={index}>{suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Marketing effectiveness */}
+                  {propertyData.sentiment_analysis.marketing_effectiveness && (
+                    <div className="mb-2">
+                      <p className="font-semibold">Marketing Effectiveness:</p>
+                      <p>{propertyData.sentiment_analysis.marketing_effectiveness}</p>
+                    </div>
+                  )}
+                </div>
+              )}          
               <div>
                 <h2 className="text-xl font-semibold mb-2">Images</h2>
                 {Array.isArray(propertyData.image_urls) && propertyData.image_urls.length > 0 ? (
@@ -948,7 +1012,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
       )}
 
       {/* Fetching Results Indicator */}
-      {!isSharedView && fetchingResults && (
+      {!isSharedView && fetchingResults && !analysisComplete && (
         <div className="mb-6">
           <p className="mb-2 text-gray-700">
             Fetching analysis results... Status: {analysisStatus}

@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { access, refresh, message } = response.data;
       localStorage.setItem('accessToken', access);
       localStorage.setItem('refreshToken', refresh);
-      console.log(message);
+      console.log("Token login:", message);
       connectToWebSocket(); // Connect WebSocket after authentication
     } catch (error) {
       console.error('Authentication with token failed:', error);

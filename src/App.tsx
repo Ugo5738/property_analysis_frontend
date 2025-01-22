@@ -1,10 +1,11 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { AuthProvider } from "./components/contexts/AuthContext";
 import Navbar from './components/Navbar';
 import PhoneNumberInput from "./components/PhoneNumberInput";
 import PromptUpdater from "./components/Prompt";
 import PropertyAnalysis from "./components/PropertyAnalysis";
+import PropertyComparisonTable from "./components/PropertyComparisonTable";
 import PropertyList from "./components/PropertyList";
-import { AuthProvider } from "./components/contexts/AuthContext";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/property-analysis/:id/:taskId" element={<PropertyAnalysis />} />
             {/* Shared read-only route */}
             <Route path="/property-analysis/shared/:id/:taskId/:shareToken" element={<PropertyAnalysis />} />
+            <Route path="/compare" element={<PropertyComparisonTable />} />
           </Routes>
         </div>
       </AuthProvider>

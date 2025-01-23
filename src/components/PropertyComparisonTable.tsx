@@ -2,6 +2,18 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosConfig";
 
+interface ColumnConfig {
+  name: string;
+  display_name: string;
+  order: number;
+  is_visible: boolean;
+}
+
+interface IProperty {
+  id: number;
+  [key: string]: any; // Allows dynamic property access
+}
+
 interface IProperty {
   id: number;
   listing_type?: string;
@@ -16,6 +28,7 @@ interface IProperty {
 }
 
 const PropertyComparisonTable: React.FC = () => {
+  const [columns, setColumns] = useState<ColumnConfig[]>([]);
   const [properties, setProperties] = useState<IProperty[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<IProperty[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -28,12 +41,26 @@ const PropertyComparisonTable: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchColumnConfig = async () => {
+      try {
+        const response = await axiosInstance.get(
+          '/api/orchestration/column-configs/?is_visible=true'
+        );
+        setColumns(response.data.results)
+      } catch (err) {
+        setError("Failed to load column configuration.");
+      }
+    };
+    fetchColumnConfig();
+  }, []);
+
+  useEffect(() => {
     const fetchProperties = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get("/api/orchestration/properties/");
-        setProperties(response.data.results || []);
-        setFilteredProperties(response.data.results || []);
+        const response = await axiosInstance.get("/api/orchestration/properties/dynamic-columns/");
+        setProperties(response.data);
+        setFilteredProperties(response.data);        
       } catch (err) {
         setError("Failed to load properties.");
       } finally {
@@ -133,33 +160,37 @@ const PropertyComparisonTable: React.FC = () => {
         </div>
       </div>
 
-      {!loading && filteredProperties.length > 0 && (
+      {!loading && columns.length > 0 && filteredProperties.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Created (Newest)</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Listing</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Address</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Price</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Bedrooms</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Bathrooms</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">House Type</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Time on Market</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+                {columns.map((column) => (
+                  <th
+                    key={column.name}
+                    className="px-4 py-3 text-left text-sm font-medium text-gray-600"
+                  >
+                    {column.display_name}
+                  </th>
+                ))}
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredProperties.map((prop) => (
-                <tr key={prop.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">{prop.created_at?.slice(0, 10)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{prop.listing_type}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{prop.address}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">£{prop.price}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{prop.bedrooms}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{prop.bathrooms}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{prop.house_type}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{prop.time_on_market}</td>
+              {filteredProperties.map((prop, index) => (
+                <tr key={`property-${index}-${prop.address}`} className="hover:bg-gray-50">
+                  {columns.map((column) => (
+                    <td
+                      key={column.name}
+                      className="px-4 py-3 text-sm text-gray-900"
+                    >
+                      {column.name === 'created_at'
+                        ? prop[column.name]?.slice(0, 10)
+                        : prop[column.name]}
+                    </td>
+                  ))}
                   <td className="px-4 py-3">
                     <button
                       className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"

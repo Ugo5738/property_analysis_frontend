@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw } from 'lucide-react';
+import { GitCompare, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from "../utils/axiosConfig";
@@ -58,6 +58,10 @@ const PropertyList: React.FC = () => {
     property.url.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleCompare = () => {
+    navigate("/compare");
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>
@@ -74,9 +78,9 @@ const PropertyList: React.FC = () => {
               />
             </div>
             <div className="flex gap-3 w-full sm:w-auto">
-              <Button onClick={fetchProperties} variant="outline" className="flex items-center justify-center flex-grow sm:flex-grow-0">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
+              <Button onClick={handleCompare} variant="outline" className="flex items-center justify-center flex-grow sm:flex-grow-0">
+                <GitCompare className="w-4 h-4 mr-2" />
+                Compare
               </Button>
               <Link to="/analyze" className="w-full sm:w-auto">
                 <Button className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center flex-grow sm:flex-grow-0">

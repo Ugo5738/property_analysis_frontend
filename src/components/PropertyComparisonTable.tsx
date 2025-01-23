@@ -33,7 +33,7 @@ const PropertyComparisonTable: React.FC = () => {
         setLoading(true);
         const response = await axiosInstance.get("/api/orchestration/properties/");
         setProperties(response.data.results || []);
-        setFilteredProperties(response.data);
+        setFilteredProperties(response.data.results || []);
       } catch (err) {
         setError("Failed to load properties.");
       } finally {
@@ -45,15 +45,27 @@ const PropertyComparisonTable: React.FC = () => {
 
   useEffect(() => {
     let temp = [...properties];
+
+    // Filter listing_type
     if (listingFilter) {
-      temp = temp.filter((p) => p.listing_type?.toLowerCase() === listingFilter.toLowerCase());
+      temp = temp.filter((p) => {
+        const listingType = p.listing_type?.toLowerCase();
+        return listingType === listingFilter.toLowerCase();
+      });
     }
+
     if (addressFilter) {
-      temp = temp.filter((p) => p.address?.toLowerCase().includes(addressFilter.toLowerCase()));
+      temp = temp.filter((p) =>
+        p.address?.toLowerCase().includes(addressFilter.toLowerCase())
+      );
     }
+
     if (houseTypeFilter) {
-      temp = temp.filter((p) => p.house_type?.toLowerCase().includes(houseTypeFilter.toLowerCase()));
+      temp = temp.filter((p) =>
+        p.house_type?.toLowerCase().includes(houseTypeFilter.toLowerCase())
+      );
     }
+
     if (priceFilter) {
       const maxPrice = parseFloat(priceFilter);
       if (!isNaN(maxPrice)) {
@@ -63,6 +75,7 @@ const PropertyComparisonTable: React.FC = () => {
         });
       }
     }
+
     setFilteredProperties(temp);
   }, [listingFilter, addressFilter, houseTypeFilter, priceFilter, properties]);
 

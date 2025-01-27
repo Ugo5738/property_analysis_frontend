@@ -43,10 +43,16 @@ const PropertyComparisonTable: React.FC = () => {
   useEffect(() => {
     const fetchColumnConfig = async () => {
       try {
-        const response = await axiosInstance.get(
-          '/api/orchestration/column-configs/?is_visible=true'
-        );
-        setColumns(response.data.results)
+        let allColumns: ColumnConfig[] = [];
+        let nextUrl = '/api/orchestration/column-configs/?is_visible=true';
+        
+        while (nextUrl) {
+          const response = await axiosInstance.get(nextUrl);
+          allColumns = [...allColumns, ...response.data.results];
+          nextUrl = response.data.next; // URL for next page
+        }
+
+        setColumns(allColumns)
       } catch (err) {
         setError("Failed to load column configuration.");
       }

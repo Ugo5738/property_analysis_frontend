@@ -425,7 +425,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
             href={propertyData.property_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 hover:underline"
+            className="text-indigo-600 hover:underline break-words"
           >
             {propertyData.property_url}
           </a>
@@ -480,20 +480,34 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="w-full flex justify-center mb-6">
-            <TabsTrigger value="summary" className="flex-1">
-              Summary
-            </TabsTrigger>
-            <TabsTrigger value="detailed" className="flex-1">
-              Detailed Analysis
-            </TabsTrigger>
-            <TabsTrigger value="property_data" className="flex-1">
-              Property Data
-            </TabsTrigger>
-            <TabsTrigger value="floorplan" className="flex-1">
-              Floorplan Analysis
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="w-max min-w-full inline-flex mb-6">
+              <TabsTrigger 
+                value="summary" 
+                className="flex-1 min-w-[100px] whitespace-nowrap"
+              >
+                Summary
+              </TabsTrigger>
+              <TabsTrigger 
+                value="detailed" 
+                className="flex-1 min-w-[100px] whitespace-nowrap"
+              >
+                Detailed Analysis
+              </TabsTrigger>
+              <TabsTrigger 
+                value="property_data" 
+                className="flex-1 min-w-[100px] whitespace-nowrap"
+              >
+                Property Data
+              </TabsTrigger>
+              <TabsTrigger 
+                value="floorplan" 
+                className="flex-1 min-w-[100px] whitespace-nowrap"
+              >
+                Floorplan Analysis
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
           {/* Property Data Tab */}
           <TabsContent value="property_data">

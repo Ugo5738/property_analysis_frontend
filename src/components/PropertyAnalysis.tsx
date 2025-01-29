@@ -264,6 +264,10 @@ const PropertyAnalysis: React.FC<{}> = () => {
     setAnalysisInProgress(!!taskId);
   }, [taskId]);
 
+  const handleCompare = () => {
+    navigate("/compare");
+  };
+
   const fetchPropertyData = async (propertyId: string) => {
     setDataLoading(true);
   
@@ -505,6 +509,13 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 className="flex-1 min-w-[100px] whitespace-nowrap"
               >
                 Floorplan Analysis
+              </TabsTrigger>
+              <TabsTrigger 
+                value="compare" 
+                className="flex-1 min-w-[100px] whitespace-nowrap"
+                onClick={handleCompare}
+              >
+                Compare
               </TabsTrigger>
             </TabsList>
           </div>
@@ -958,6 +969,8 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 <p>No floorplan analysis data available.</p>
               )}
           </TabsContent>
+
+          <TabsContent value="compare" />
         </Tabs>
       </>
     );

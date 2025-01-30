@@ -37,8 +37,21 @@ const PropertyComparisonTable: React.FC = () => {
   const [addressFilter, setAddressFilter] = useState<string>("");
   const [houseTypeFilter, setHouseTypeFilter] = useState<string>("");
   const [priceFilter, setPriceFilter] = useState<string>("");
+  const [sortColumn, setSortColumn] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const navigate = useNavigate();
+
+  const handleSort = (columnName: string) => {
+    if (sortColumn === columnName) {
+      // Toggle asc/desc
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      // Switch to a new column, default to asc
+      setSortColumn(columnName);
+      setSortOrder('asc');
+    }
+  };
 
   useEffect(() => {
     const fetchColumnConfig = async () => {
@@ -51,6 +64,8 @@ const PropertyComparisonTable: React.FC = () => {
           allColumns = [...allColumns, ...response.data.results];
           nextUrl = response.data.next; // URL for next page
         }
+
+        console.log("This is all columns: ", allColumns)
 
         setColumns(allColumns)
       } catch (err) {
@@ -65,6 +80,7 @@ const PropertyComparisonTable: React.FC = () => {
       try {
         setLoading(true);
         const response = await axiosInstance.get("/api/orchestration/properties/dynamic-columns/");
+        console.log("This is all columns 2: ", response.data)
         setProperties(response.data);
         setFilteredProperties(response.data);        
       } catch (err) {
@@ -109,8 +125,32 @@ const PropertyComparisonTable: React.FC = () => {
       }
     }
 
+    if (sortColumn) {
+      temp.sort((a, b) => {
+        let valA = a[sortColumn];
+        let valB = b[sortColumn];
+  
+        // If the column is numeric, convert to numbers
+        const numA = parseFloat(valA) || 0;
+        const numB = parseFloat(valB) || 0;
+  
+        // If *both* parse as valid numbers, sort numerically
+        if (!isNaN(numA) && !isNaN(numB) && !(isNaN(numA) && isNaN(numB))) {
+          return sortOrder === 'asc' ? numA - numB : numB - numA;
+        }
+        
+        // Otherwise fall back to string sort
+        valA = valA?.toString().toLowerCase() || '';
+        valB = valB?.toString().toLowerCase() || '';
+  
+        if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+        if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
     setFilteredProperties(temp);
-  }, [listingFilter, addressFilter, houseTypeFilter, priceFilter, properties]);
+  }, [listingFilter, addressFilter, houseTypeFilter, priceFilter, properties, sortColumn, sortOrder]);
 
   return (
     <div className="px-6 py-8 bg-white">
@@ -131,7 +171,7 @@ const PropertyComparisonTable: React.FC = () => {
           >
             <option value="">--All--</option>
             <option value="sales">Sales</option>
-            <option value="lettings">Letting</option>
+            <option value="letting">Letting</option>
           </select>
         </div>
         <div className="flex flex-col">
@@ -175,8 +215,13 @@ const PropertyComparisonTable: React.FC = () => {
                   <th
                     key={column.name}
                     className="px-4 py-3 text-left text-sm font-medium text-gray-600"
+                    onClick={() => handleSort(column.name)}
                   >
                     {column.display_name}
+                    {/* Show an arrow if this column is actively sorted */}
+                    {sortColumn === column.name && (
+                      sortOrder === 'asc' ? ' ▲' : ' ▼'
+                    )}
                   </th>
                 ))}
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">

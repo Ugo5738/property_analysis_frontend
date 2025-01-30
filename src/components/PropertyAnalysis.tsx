@@ -40,6 +40,11 @@ interface SentimentAnalysis {
   marketing_effectiveness: string;
 }
 
+interface DescriptionAnalysis {
+  rating: string;
+  label: string;
+}
+
 interface PropertyData {
   id: number;
   url: string;
@@ -56,6 +61,7 @@ interface PropertyData {
   image_urls: string[];
   floorplan_urls: string[];
   sentiment_analysis?: SentimentAnalysis;
+  description_analysis?: DescriptionAnalysis,
   overall_condition: {
     areas_of_concern: number;
     average_score: number;
@@ -676,7 +682,15 @@ const PropertyAnalysis: React.FC<{}> = () => {
                   </div>
                 </CardContent>
               </Card>
-
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Description Analysis</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {propertyData.description_analysis?.label}
+                </CardContent>
+              </Card>
               {/* Condition Distribution Chart */}
               <Card>
                 <CardHeader>

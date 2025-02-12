@@ -63,16 +63,23 @@ const PropertyList: React.FC = () => {
     navigate("/compare");
   };
 
+  const handleConnectGmail = async () => {
+    try {
+      const response = await axiosInstance.get('/email/auth/gmail/');
+      window.location.href = response.data.redirect_url;
+    } catch (error) {
+      console.error("Failed to get OAuth URL", error);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div className="flex gap-3 w-full sm:w-auto">
-          <Link to="/email/auth/gmail/">
-            <Button variant="secondary" className="flex items-center">
-              Connect Gmail
-            </Button>
-          </Link>
+          <Button onClick={handleConnectGmail} variant="secondary" className="flex items-center">
+            Connect Gmail
+          </Button>
           <Button onClick={handleCompare} variant="outline" className="flex items-center">
             <GitCompare className="w-4 h-4 mr-2" />
             Compare

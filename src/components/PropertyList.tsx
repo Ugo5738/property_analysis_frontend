@@ -72,6 +72,11 @@ const PropertyList: React.FC = () => {
     }
   };
 
+  const manualGmailFetch = async () => {
+    const response = await axiosInstance.get('/email/manual-fetch/');
+    console.log("Fetched property data:", response.data);
+  }
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>
@@ -79,6 +84,9 @@ const PropertyList: React.FC = () => {
         <div className="flex gap-3 w-full sm:w-auto">
           <Button onClick={handleConnectGmail} variant="secondary" className="flex items-center">
             Connect Gmail
+          </Button>
+          <Button onClick={manualGmailFetch} variant="secondary" className="flex items-center">
+            Manual Gmail Fetch
           </Button>
           <Button onClick={handleCompare} variant="outline" className="flex items-center">
             <GitCompare className="w-4 h-4 mr-2" />

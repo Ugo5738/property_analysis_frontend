@@ -1,4 +1,5 @@
 import ConditionScale from "@/components/ConditionScale";
+import ShareButton from '@/components/ShareButton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,6 @@ import axiosInstance from "..//utils/axiosConfig";
 import { useAuth } from "../components/contexts/AuthContext";
 import { onMessage, removeMessageListener } from "../services/websocketServices";
 import CustomTick from './CustomTick';
-
 
 interface SentimentAnalysis {
   key_phrases: string[];
@@ -87,6 +87,7 @@ export interface PropertyData {
   id: number;
   url: string;
   property_url: string;
+  share_token: string;
   address: string;
   price: string;
   bedrooms: number;
@@ -457,6 +458,10 @@ const PropertyAnalysis: React.FC<{}> = () => {
       groupedImages.push(analyzedImages.slice(i, i + 3));
     }
 
+    const shareUrl = propertyData?.share_token 
+    ? `${window.location.origin}/property-analysis/shared/${propertyData.id}/${taskId}/${propertyData.share_token}`
+    : window.location.href;
+
     // console.log('Total Property Images:', totalPropertyImages);
     // console.log('Total Analyzed Images:', totalAnalyzedImages);
     // console.log('Total Skipped Images:', totalSkippedImages);
@@ -469,16 +474,22 @@ const PropertyAnalysis: React.FC<{}> = () => {
         </h1>
 
         {/* Property URL */}
-        <div className="mb-6">
-          <p className="text-gray-600">Analyzing property:</p>
-          <a
-            href={propertyData.property_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-indigo-600 hover:underline break-words"
-          >
-            {propertyData.property_url}
-          </a>
+        <div className="container mx-auto p-4 max-w-6xl">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-gray-600">Analyzing property:</p>
+              <a
+                href={propertyData.property_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600 hover:underline break-words"
+              >
+                {propertyData.property_url}
+              </a>
+            </div> 
+            <div>
+              <ShareButton shareUrl={shareUrl} />
+            </div>        
         </div>
 
         {/* Main Image Carousel (Analyzed Images) */}
@@ -1109,6 +1120,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
           <TabsContent value="compare" />
         </Tabs>
+        </div>
       </>
     );
   };

@@ -458,8 +458,9 @@ const PropertyAnalysis: React.FC<{}> = () => {
       groupedImages.push(analyzedImages.slice(i, i + 3));
     }
 
+    console.log("this is the share data: ", propertyData?.share_token)
     const shareUrl = propertyData?.share_token 
-    ? `${window.location.origin}/property-analysis/shared/${propertyData.id}/${taskId}/${propertyData.share_token}`
+    ? `${window.location.origin}/property-analysis/shared/${propertyData.id}/${propertyData.share_token}`
     : window.location.href;
 
     // console.log('Total Property Images:', totalPropertyImages);

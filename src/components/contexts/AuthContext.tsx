@@ -7,8 +7,18 @@ import {
 import axiosInstance from "../../utils/axiosConfig";
 
 
+interface User {
+  id: number;
+  email: string;
+  phone: string;
+  gmail_connected: boolean;
+  // any other user properties…
+}
+
 interface AuthContextType {
   isConnected: boolean;
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
   connectToWebSocket: () => void;
   disconnectFromWebSocket: () => void;
   loginWithPhone: (phoneNumber: string) => Promise<void>;
@@ -24,6 +34,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   // const userPhoneNumber = localStorage.getItem('userPhoneNumber');
 
   const connectToWebSocket = () => {
@@ -53,6 +64,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsConnected(false);
   };
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await axiosInstance.get("/api/auth/current-user/");
+        setCurrentUser(response.data);
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+        setCurrentUser(null);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
   const loginWithPhone = async (phoneNumber: string) => {
     try {
       const response = await axiosInstance.post('/api/auth/authenticate-phone/', { phone_number: phoneNumber });
@@ -60,6 +84,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('accessToken', access);
       localStorage.setItem('refreshToken', refresh);
       console.log(message);
+      // Optionally re-fetch the user after login
+      const userResponse = await axiosInstance.get("/api/auth/current-user/");
+      setCurrentUser(userResponse.data);
       connectToWebSocket(); // Connect WebSocket after login
     } catch (error) {
       console.error('Login failed:', error);
@@ -74,6 +101,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('accessToken', access);
       localStorage.setItem('refreshToken', refresh);
       console.log("Token login:", message);
+      // Optionally re-fetch the user after login
+      const userResponse = await axiosInstance.get("/api/auth/current-user/");
+      setCurrentUser(userResponse.data);
       connectToWebSocket(); // Connect WebSocket after authentication
     } catch (error) {
       console.error('Authentication with token failed:', error);
@@ -91,10 +121,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      setCurrentUser(null);
       disconnectFromWebSocket();
       // Optionally, redirect to login page
-
-      // Optionally redirect to login page
       window.location.href = '/enter-phone';
     }
   };
@@ -113,6 +142,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider
       value={{
         isConnected,
+        currentUser,
+        setCurrentUser,
         connectToWebSocket,
         disconnectFromWebSocket,
         loginWithPhone,

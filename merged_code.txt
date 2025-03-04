@@ -4,7 +4,7 @@ import { AuthProvider } from "./components/contexts/AuthContext";
 import Navbar from './components/Navbar';
 import PhoneNumberInput from "./components/PhoneNumberInput";
 import PromptUpdater from "./components/Prompt";
-import PropertyAnalysis from "./components/PropertyAnalysis";
+import PropertyAnalysisWrapper from "./components/PropertyAnalysisWrapper";
 import PropertyComparisonTable from "./components/PropertyComparisonTable";
 import PropertyList from "./components/PropertyList";
 
@@ -19,11 +19,12 @@ function App() {
             <Route path="/enter-phone" element={<PhoneNumberInput />} />
             <Route path="/prompt-update" element={<PromptUpdater />} />
             <Route path="/properties" element={<PropertyList />} />
-            <Route path="/analyze" element={<PropertyAnalysis />} />
-            <Route path="/property-analysis/:id" element={<PropertyAnalysis />} />
-            <Route path="/property-analysis/:id/:taskId" element={<PropertyAnalysis />} />
+            <Route path="/analyze" element={<PropertyAnalysisWrapper />} />
+            {/* Use the wrapper for both routes */}
+            <Route path="/property-analysis/:id" element={<PropertyAnalysisWrapper />} />
+            <Route path="/property-analysis/:id/:taskId" element={<PropertyAnalysisWrapper />} />
             {/* Shared read-only route */}
-            <Route path="/property-analysis/shared/:id/:taskId/:shareToken" element={<PropertyAnalysis />} />
+            <Route path="/property-analysis/shared/:id/:taskId/:shareToken" element={<PropertyAnalysisWrapper />} />
             <Route path="/compare" element={<PropertyComparisonTable />} />
           </Routes>
         </div>
@@ -1269,6 +1270,7 @@ export interface PropertyData {
   id: number;
   url: string;
   property_url: string;
+  share_token: string;
   address: string;
   price: string;
   bedrooms: number;
@@ -1639,6 +1641,11 @@ const PropertyAnalysis: React.FC<{}> = () => {
       groupedImages.push(analyzedImages.slice(i, i + 3));
     }
 
+    console.log("this is the share data: ", propertyData?.share_token)
+    const shareUrl = propertyData?.share_token 
+    ? `${window.location.origin}/property-analysis/shared/${propertyData.id}/${propertyData.share_token}`
+    : window.location.href;
+
     // console.log('Total Property Images:', totalPropertyImages);
     // console.log('Total Analyzed Images:', totalAnalyzedImages);
     // console.log('Total Skipped Images:', totalSkippedImages);
@@ -1651,17 +1658,22 @@ const PropertyAnalysis: React.FC<{}> = () => {
         </h1>
 
         {/* Property URL */}
-        <div className="mb-6">
-          <p className="text-gray-600">Analyzing property:</p>
-          <a
-            href={propertyData.property_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-indigo-600 hover:underline break-words"
-          >
-            {propertyData.property_url}
-          </a>
-          <ShareButton shareUrl={propertyData.property_url} />
+        <div className="container mx-auto p-4 max-w-6xl">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-gray-600">Analyzing property:</p>
+              <a
+                href={propertyData.property_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600 hover:underline break-words"
+              >
+                {propertyData.property_url}
+              </a>
+            </div> 
+            <div>
+              <ShareButton shareUrl={shareUrl} />
+            </div>        
         </div>
 
         {/* Main Image Carousel (Analyzed Images) */}
@@ -2292,6 +2304,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
           <TabsContent value="compare" />
         </Tabs>
+        </div>
       </>
     );
   };
@@ -2976,21 +2989,21 @@ export default PropertyComparisonTable;
 
 
 // src/components/ShareButton.tsx
+// ShareButton.tsx
 import { Button } from "@/components/ui/button";
 import React, { useState } from 'react';
 
-interface CopyShareButtonProps {
+interface ShareButtonProps {
   shareUrl: string;
 }
 
-const ShareButton: React.FC<CopyShareButtonProps> = ({ shareUrl }) => {
+const ShareButton: React.FC<ShareButtonProps> = ({ shareUrl }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      // Hide notification after 2 seconds
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy text:", error);
@@ -2998,8 +3011,13 @@ const ShareButton: React.FC<CopyShareButtonProps> = ({ shareUrl }) => {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <Button onClick={handleCopy}>Copy Share URL</Button>
+    <div className="flex flex-col items-end">
+      <Button 
+        onClick={handleCopy} 
+        className="bg-indigo-600 hover:bg-indigo-700 text-white"
+      >
+        Copy Share URL
+      </Button>
       {copied && (
         <p className="mt-2 text-green-600 text-sm">
           Link copied to clipboard!
@@ -3252,6 +3270,22 @@ const CustomTick = ({ x, y, payload }: CustomTickProps): JSX.Element => {
 };
 
 export default CustomTick;
+
+
+// src/components/PropertyAnalysisWrapper.tsx
+import { useParams } from "react-router-dom";
+import PropertyAnalysis from "./PropertyAnalysis";
+
+const PropertyAnalysisWrapper = () => {
+  // Get URL parameters (both id and taskId, if available)
+  const { id, taskId } = useParams();
+  // Create a unique key using id and taskId (or a default if taskId is missing)
+  const key = `${id}-${taskId || "no-task"}`;
+  
+  return <PropertyAnalysis key={key} />;
+};
+
+export default PropertyAnalysisWrapper;
 
 
 // src/components/ConditionScale.tsx

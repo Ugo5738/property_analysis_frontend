@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GitCompare, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/contexts/AuthContext';
 import axiosInstance from "../utils/axiosConfig";
 
 interface Property {
@@ -23,6 +24,7 @@ const PropertyList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const [, setAuthenticated] = useState<boolean>(false);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const checkAuthentication = async () => {
@@ -65,10 +67,10 @@ const PropertyList: React.FC = () => {
 
   const handleConnectGmail = async () => {
     try {
-      const response = await axiosInstance.get('/email/auth/gmail/');
+      const response = await axiosInstance.get("/email/auth/gmail/");
       window.location.href = response.data.redirect_url;
     } catch (error) {
-      console.error("Failed to get OAuth URL", error);
+      console.error("Failed to get Gmail OAuth URL:", error);
     }
   };
 
@@ -82,9 +84,19 @@ const PropertyList: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div className="flex gap-3 w-full sm:w-auto">
-          <Button onClick={handleConnectGmail} variant="secondary" className="flex items-center">
-            Connect Gmail
-          </Button>
+          {currentUser ? (
+            <>
+              {currentUser.gmail_connected ? (
+                <Button variant="secondary" className="flex items-center" disabled>
+                  Gmail Connected
+                </Button>
+              ) : (
+                <Button variant="secondary" className="flex items-center" onClick={handleConnectGmail}>
+                  Connect Gmail
+                </Button>
+              )}
+            </>
+          ) : null}
           <Button onClick={manualGmailFetch} variant="secondary" className="flex items-center">
             Manual Gmail Fetch
           </Button>

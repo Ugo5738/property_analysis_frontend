@@ -1,4 +1,3 @@
-// PropertyList.tsx
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,26 +74,33 @@ const PropertyList: React.FC = () => {
   };
 
   const manualGmailFetch = async () => {
-    const response = await axiosInstance.get('/email/manual-fetch/');
-    console.log("Fetched property data:", response.data);
-  }
+    try {
+      const response = await axiosInstance.get("/email/manual-fetch/");
+      console.log("Manual fetch response:", response.data);
+    } catch (error) {
+      console.error("Manual Gmail fetch failed:", error);
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Property List</h1>
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div className="flex gap-3 w-full sm:w-auto">
-          {currentUser ? (
+        {currentUser ? (
             <>
-              {currentUser.gmail_connected ? (
-                <Button variant="secondary" className="flex items-center" disabled>
-                  Gmail Connected
-                </Button>
-              ) : (
-                <Button variant="secondary" className="flex items-center" onClick={handleConnectGmail}>
-                  Connect Gmail
-                </Button>
-              )}
+              {/* Gmail Button: green if not connected, grey if connected */}
+              <Button
+                onClick={handleConnectGmail}
+                className={`flex items-center ${
+                  currentUser.gmail_connected
+                    ? "bg-gray-400 cursor-default"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+                disabled={currentUser.gmail_connected}
+              >
+                {currentUser.gmail_connected ? "Gmail Connected" : "Connect Gmail"}
+              </Button>
             </>
           ) : null}
           <Button onClick={manualGmailFetch} variant="secondary" className="flex items-center">

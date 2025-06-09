@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import React, { useEffect, useState } from "react";
+import FloorplanAnalysis3 from './FloorplanAnalysis3';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Bar,
@@ -546,37 +547,43 @@ const PropertyAnalysis: React.FC<{}> = () => {
             <TabsList className="w-max min-w-full inline-flex mb-6">
               <TabsTrigger 
                 value="summary" 
-                className="flex-1 min-w-[100px] whitespace-nowrap"
+                className="flex-1"
               >
                 Summary
               </TabsTrigger>
               <TabsTrigger 
                 value="detailed" 
-                className="flex-1 min-w-[100px] whitespace-nowrap"
+                className="flex-1"
               >
                 Detailed Analysis
               </TabsTrigger>
               <TabsTrigger 
                 value="property_data" 
-                className="flex-1 min-w-[100px] whitespace-nowrap"
+                className="flex-1"
               >
                 Property Data
               </TabsTrigger>
               <TabsTrigger 
                 value="floorplan" 
-                className="flex-1 min-w-[100px] whitespace-nowrap"
+                className="flex-1"
               >
-                Floorplan Analysis 1
+                Floorplan
               </TabsTrigger>
               <TabsTrigger 
                 value="floorplan2" 
-                className="flex-1 min-w-[100px] whitespace-nowrap"
+                className="flex-1"
               >
-                Floorplan Analysis 2
+                Floorplan 2
               </TabsTrigger>
               <TabsTrigger 
-                value="compare" 
-                className="flex-1 min-w-[100px] whitespace-nowrap"
+                value="floorplan3" 
+                className="flex-1"
+              >
+                Floorplan Analysis
+              </TabsTrigger>
+              <TabsTrigger 
+                value="compare"
+                className="flex-1"
                 onClick={handleCompare}
               >
                 Compare
@@ -1120,6 +1127,10 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
 
           <TabsContent value="compare" />
+
+          <TabsContent value="floorplan3">
+            <FloorplanAnalysis3 />
+          </TabsContent>
         </Tabs>
         </div>
       </>

@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import React, { useEffect, useState } from "react";
+import FloorplanAnalysis2 from './FloorplanAnalysis2';
 import FloorplanAnalysis3 from './FloorplanAnalysis3';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -1050,79 +1051,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
           </TabsContent>
 
           <TabsContent value="floorplan2">
-            {propertyData?.overall_analysis?.stages?.floorplan_analysis_2 ? (
-              <>
-                {/* Top-Level Summary Table */}
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-2">Property Spaces</h2>
-                  <div className="overflow-auto">
-                    <table className="table-auto w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="px-4 py-2 text-left">Category</th>
-                          <th className="px-4 py-2 text-left">Space %</th>
-                          <th className="px-4 py-2 text-left">Sq Ft</th>
-                          <th className="px-4 py-2 text-left">Sq M</th>
-                          <th className="px-4 py-2 text-left">Cost/Space</th>
-                          <th className="px-4 py-2 text-left">Cost/??</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {propertyData.overall_analysis.stages.floorplan_analysis_2.propertySpaces.map(
-                          (space: any, idx: number) => (
-                            <tr key={idx} className="border-b">
-                              <td className="px-4 py-2">{space.category}</td>
-                              <td className="px-4 py-2">{space.spacePercentage}%</td>
-                              <td className="px-4 py-2">{space.sqft}</td>
-                              <td className="px-4 py-2">{space.sqm}</td>
-                              <td className="px-4 py-2">{space.costSpace}</td>
-                              <td className="px-4 py-2">{space.otherCost}</td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Detailed View Table */}
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Detailed View</h2>
-                  <div className="overflow-auto">
-                    <table className="table-auto w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="px-4 py-2 text-left">Building/Floor</th>
-                          <th className="px-4 py-2 text-left">Space Type</th>
-                          <th className="px-4 py-2 text-left">Space Name</th>
-                          <th className="px-4 py-2 text-left">Area Sqft %</th>
-                          <th className="px-4 py-2 text-left">Area Sqft</th>
-                          <th className="px-4 py-2 text-left">Area Sqm</th>
-                          <th className="px-4 py-2 text-left">Price Per Space</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {propertyData.overall_analysis.stages.floorplan_analysis_2.detailedView.map(
-                          (item: any, idx: number) => (
-                            <tr key={idx} className="border-b">
-                              <td className="px-4 py-2">{item.floor}</td>
-                              <td className="px-4 py-2">{item.spaceType}</td>
-                              <td className="px-4 py-2">{item.spaceName}</td>
-                              <td className="px-4 py-2">{item.areaSqftPercentage}%</td>
-                              <td className="px-4 py-2">{item.areaSqft}</td>
-                              <td className="px-4 py-2">{item.areaSqm}</td>
-                              <td className="px-4 py-2">{item.pricePerSpace}</td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <p>No Floorplan Analysis 2 data available.</p>
-            )}
+            <FloorplanAnalysis2 />
           </TabsContent>
 
 

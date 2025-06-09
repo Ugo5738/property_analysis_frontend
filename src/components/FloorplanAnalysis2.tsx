@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-// Using correct relative path for Card components with type assertion
-// @ts-ignore - Suppress declaration file missing error
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import * as floorplanService from '../services/floorplanService';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 // Table 1: Floorplan Metadata Interface
 interface FloorplanMetadata {
@@ -372,17 +370,34 @@ const FloorplanAnalysis2 = () => {
     fetchFloorplanData();
   }, [id]);
 
-  // Helper to render a URL as a clickable link
+  /**
+   * Shorten ID to a more readable format (first 4 chars...last 4 chars)
+   */
+  const shortenId = (id: string | undefined) => {
+    if (!id || id.length <= 10) return id || 'N/A';
+    return `${id.substring(0, 4)}...${id.substring(id.length - 4)}`;
+  };
+  
+  /**
+   * Render URL as a clickable link with shortened text
+   */
   const renderUrl = (url: string | undefined) => {
     if (!url) return 'N/A';
+    
+    // Extract just the filename from the URL
+    const urlParts = url.split('/');
+    const filename = urlParts[urlParts.length - 1];
+    const shortenedUrl = filename.length > 20 ? `${filename.substring(0, 10)}...${filename.substring(filename.length - 10)}` : filename;
+    
     return (
-      <a 
-        href={url} 
-        target="_blank" 
-        rel="noopener noreferrer" 
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
         className="text-blue-600 hover:text-blue-800 underline"
+        title={url}
       >
-        Open Link
+        {shortenedUrl}
       </a>
     );
   };
@@ -418,6 +433,25 @@ const FloorplanAnalysis2 = () => {
   // Render the component with data
   return (
     <div className="space-y-6">
+      {/* Floorplan Image */}
+      {floorplanData.floorplanMetadata.image_labelme_side_by_side_url && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Floorplan Visualization</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <img 
+                src={floorplanData.floorplanMetadata.image_labelme_side_by_side_url} 
+                alt="Floorplan visualization" 
+                className="max-w-full h-auto rounded-md shadow-md border border-gray-200" 
+                style={{ maxHeight: '600px' }} 
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* Table 1: Floorplan Metadata */}
       <Card>
         <CardHeader>
@@ -443,7 +477,9 @@ const FloorplanAnalysis2 = () => {
                 <tr className="border-b hover:bg-gray-50">
                   <td className="px-4 py-2">{floorplanData.floorplanMetadata.property_id || 'N/A'}</td>
                   <td className="px-4 py-2">{floorplanData.floorplanMetadata.user_id || 'N/A'}</td>
-                  <td className="px-4 py-2">{floorplanData.floorplanMetadata.floorplan_id || 'N/A'}</td>
+                  <td className="px-4 py-2" title={floorplanData.floorplanMetadata.floorplan_id || ''}>
+                    {shortenId(floorplanData.floorplanMetadata.floorplan_id)}
+                  </td>
                   <td className="px-4 py-2">{renderUrl(floorplanData.floorplanMetadata.original_url)}</td>
                   <td className="px-4 py-2">{renderUrl(floorplanData.floorplanMetadata.json_file_url)}</td>
                   <td className="px-4 py-2">{renderUrl(floorplanData.floorplanMetadata.csv_url)}</td>

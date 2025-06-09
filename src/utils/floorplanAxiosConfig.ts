@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with the base URL for the floorplan API
 const floorplanAxiosInstance = axios.create({
-  baseURL: 'https://floorplan.supersami.com',
+  baseURL: 'https://floorplan.supersami.com/api/floorplan',
   timeout: 30000, // 30 seconds
   headers: {
     'Content-Type': 'application/json',

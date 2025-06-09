@@ -24,14 +24,30 @@ interface FloorplanApiResponse {
   }[];
 }
 
-// Room data type from API
+// Room data type from API with all possible property names to handle API variations
 interface RoomData {
+  // Room naming properties
+  room_name?: string;
+  name?: string;
+  space_name?: string;
+  label?: string;
+  
+  // Room area properties
+  calculated_area_imperial?: string | number;
+  area_imperial?: string | number;
+  area?: string | number;
+  square_feet?: string | number;
+  calculated_sq_area_metric?: number;
+  
+  // Room location properties
   floor_name?: string;
-  room_name: string;
+  floor?: string;
+  level?: string;
+  
+  // Other properties
   room_id?: number;
   is_segment?: string;
-  calculated_sq_area_metric?: number;
-  calculated_area_imperial: string | number;
+  [key: string]: any; // Allow any additional properties from API
 }
 
 // Excel-like data structure for property spaces
@@ -115,6 +131,45 @@ const FloorplanAnalysis2 = () => {
     };
     
     try {
+      // Inspect API response structure deeply
+      console.log('API Response keys:', Object.keys(apiResponse));
+      console.log('Floor plans array?', Array.isArray(apiResponse?.floor_plans));
+      
+      // Recursively log object structure to find room data
+      const logObjectStructure = (obj: any, prefix: string = '', maxDepth: number = 3, currentDepth: number = 0) => {
+        if (!obj || typeof obj !== 'object' || currentDepth >= maxDepth) return;
+        
+        Object.keys(obj).forEach(key => {
+          const value = obj[key];
+          const path = prefix ? `${prefix}.${key}` : key;
+          
+          if (Array.isArray(value)) {
+            console.log(`${path}: Array with ${value.length} items`);
+            if (value.length > 0 && currentDepth < maxDepth - 1) {
+              console.log(`${path}[0] sample:`, value[0]);
+              
+              // Check if this might be our room data
+              const sample = value[0];
+              if (sample && typeof sample === 'object' && 
+                  (sample.room_name || sample.name || sample.area || 
+                   sample.calculated_area_imperial || sample.area_imperial)) {
+                console.log(`POTENTIAL ROOM DATA FOUND AT: ${path}`, sample);
+              }
+            }
+          } else if (value && typeof value === 'object') {
+            console.log(`${path}: Object with keys: ${Object.keys(value).join(', ')}`);
+            logObjectStructure(value, path, maxDepth, currentDepth + 1);
+          }
+        });
+      };
+      
+      console.log('Deep structure inspection:');
+      logObjectStructure(apiResponse, '', 4);
+      
+      if (apiResponse?.floor_plans?.length) {
+        console.log('First floor plan keys:', Object.keys(apiResponse.floor_plans[0]));
+      }
+      
       // Early return if no floor plans
       if (!apiResponse?.floor_plans?.length) {
         console.log('No floor plans found in API response');
@@ -124,10 +179,120 @@ const FloorplanAnalysis2 = () => {
       // Get the first floor plan
       const floorPlan = apiResponse.floor_plans[0];
       
-      // Process actual data if available
-      if (floorPlan?.all_floors_data?.all_floors_csv_data?.length) {
-        const allFloorsData = floorPlan.all_floors_data.all_floors_csv_data;
-        console.log('Found floor data:', allFloorsData.length, 'rooms');
+      // Check for key availability in floorPlan
+      console.log('Floor plan has all_floors_data?', floorPlan.hasOwnProperty('all_floors_data'));
+      console.log('Floor plan has csv_data?', floorPlan.hasOwnProperty('csv_data'));
+      console.log('Floor plan has rooms?', floorPlan.hasOwnProperty('rooms'));
+      
+      // Search for room data across all possible field paths
+      const findRoomsData = (obj: any): RoomData[] | null => {
+        // Direct known paths to check first
+        const knownPaths = [
+          'all_floors_data.all_floors_csv_data',
+          'csv_data',
+          'rooms',
+          'elements',
+          'data.rooms',
+          'data.elements',
+          'floorplan.rooms',
+          'floorplan_data.rooms'
+        ];
+        
+        // Helper to get nested property by path
+        const getByPath = (object: any, path: string) => {
+          return path.split('.').reduce((o, p) => o && o[p], object);
+        };
+        
+        // First check known paths
+        for (const path of knownPaths) {
+          const possibleRooms = getByPath(obj, path);
+          if (Array.isArray(possibleRooms) && possibleRooms.length > 0) {
+            console.log(`Found rooms array at path: ${path} with ${possibleRooms.length} items`);
+            
+            // Verify this looks like room data
+            const sample = possibleRooms[0];
+            if (sample && typeof sample === 'object') {
+              // Look for room name-like or area-like properties
+              const hasNameField = Boolean(sample.room_name || sample.name || sample.label || sample.space_name);
+              const hasAreaField = Boolean(sample.calculated_area_imperial || 
+                                          sample.area || sample.area_imperial || 
+                                          sample.square_feet || sample.size);
+              
+              if (hasNameField || hasAreaField) {
+                console.log('Detected room data with correct properties');
+                return possibleRooms;
+              }
+            }
+          }
+        }
+        
+        // If we can't find data in known paths, try a more intensive search
+        const searchArrays = (o: any, depth: number = 0): RoomData[] | null => {
+          if (!o || typeof o !== 'object' || depth > 5) return null;
+          
+          // If we found an array, check if it looks like room data
+          if (Array.isArray(o) && o.length > 0) {
+            const sample = o[0];
+            if (sample && typeof sample === 'object') {
+              // Check for room-like properties
+              const hasNameField = Boolean(sample.room_name || sample.name || sample.label || sample.space_name);
+              const hasAreaField = Boolean(sample.calculated_area_imperial || 
+                                          sample.area || sample.area_imperial || 
+                                          sample.square_feet || sample.size);
+                                          
+              if (hasNameField || hasAreaField) {
+                console.log('Found room-like array during deep search:', sample);
+                return o;
+              }
+            }
+          }
+          
+          // Otherwise search recursively through object or array
+          if (Array.isArray(o)) {
+            for (let i = 0; i < o.length; i++) {
+              const result = searchArrays(o[i], depth + 1);
+              if (result) return result;
+            }
+          } else {
+            for (const key of Object.keys(o)) {
+              const result = searchArrays(o[key], depth + 1);
+              if (result) return result;
+            }
+          }
+          
+          return null;
+        };
+        
+        return searchArrays(obj);
+      };
+      
+      // Try to find room data in the response
+      const roomsData = findRoomsData(floorPlan) || [];
+      console.log(`Room data search completed, found: ${roomsData.length} items`);
+      
+      // Check if we found any room data
+      if (roomsData.length > 0) {
+        // Sample one room to understand structure
+        console.log('Sample room data structure:', roomsData[0]);
+        
+        // Determine which field has room name/area based on available properties
+        const sampleRoom = roomsData[0];
+        const nameField = sampleRoom.room_name ? 'room_name' : 
+                        sampleRoom.name ? 'name' : 
+                        sampleRoom.space_name ? 'space_name' : 'label';
+                        
+        const areaField = sampleRoom.calculated_area_imperial ? 'calculated_area_imperial' : 
+                         sampleRoom.area_imperial ? 'area_imperial' : 
+                         sampleRoom.area ? 'area' : 'square_feet';
+                         
+        const floorField = sampleRoom.floor_name ? 'floor_name' : 
+                          sampleRoom.floor ? 'floor' : 
+                          sampleRoom.level ? 'level' : null;
+                          
+        console.log(`Using fields: name=${nameField}, area=${areaField}, floor=${floorField || 'not found'}`);
+        
+        // Use the rooms data we found through our dynamic search
+        console.log('Found floor data:', roomsData.length, 'rooms');
           
         // Create category map with proper types
         type CategoryMap = {
@@ -148,28 +313,31 @@ const FloorplanAnalysis2 = () => {
         // Calculate total area and categorize rooms
         let totalArea = 0;
         
-        allFloorsData.forEach((room: RoomData) => {
-          if (!room.room_name) return;
+        roomsData.forEach((room: RoomData) => {
+          // Get room name using dynamic field access
+          const roomName = room[nameField];
+          if (!roomName || typeof roomName !== 'string') return;
           
-          const roomName = room.room_name.toLowerCase();
+          const roomNameLower = roomName.toLowerCase();
           
-          // Handle both string and number types for calculated_area_imperial
-          const areaSqft = typeof room.calculated_area_imperial === 'string' 
-            ? parseFloat(room.calculated_area_imperial) || 0 
-            : room.calculated_area_imperial || 0;
+          // Get area using dynamic field access
+          const areaValue = room[areaField];
+          const areaSqft = typeof areaValue === 'string' 
+            ? parseFloat(areaValue) || 0 
+            : typeof areaValue === 'number' ? areaValue : 0;
             
           totalArea += areaSqft;
           
-          if (roomName.includes('kitchen') || roomName.includes('reception')) {
+          if (roomNameLower.includes('kitchen') || roomNameLower.includes('reception')) {
             categories.Kitchen.rooms.push(room);
             categories.Kitchen.area += areaSqft;
-          } else if (roomName.includes('bedroom') || roomName.includes('master')) {
+          } else if (roomNameLower.includes('bedroom') || roomNameLower.includes('master')) {
             categories.Bedrooms.rooms.push(room);
             categories.Bedrooms.area += areaSqft;
-          } else if (roomName.includes('bath') || roomName.includes('shower') || roomName.includes('wc')) {
+          } else if (roomNameLower.includes('bath') || roomNameLower.includes('shower') || roomNameLower.includes('wc')) {
             categories.Bathrooms.rooms.push(room);
             categories.Bathrooms.area += areaSqft;
-          } else if (roomName.includes('living') || roomName.includes('lounge') || roomName.includes('dining')) {
+          } else if (roomNameLower.includes('living') || roomNameLower.includes('lounge') || roomNameLower.includes('dining')) {
             categories.Living.rooms.push(room);
             categories.Living.area += areaSqft;
           } else {
@@ -195,36 +363,35 @@ const FloorplanAnalysis2 = () => {
             };
           });
         
-        // Generate detailed view
-        result.detailedView = allFloorsData
-          .filter((room: RoomData) => room.room_name) // Only include rooms with names
+        // Generate detailed view using dynamic field names
+        result.detailedView = roomsData
+          .filter((room: RoomData) => room[nameField] && typeof room[nameField] === 'string') // Only include rooms with names
           .map((room: RoomData) => {
-            // Handle both string and number types for calculated_area_imperial
-            const areaSqft = typeof room.calculated_area_imperial === 'string' 
-              ? parseFloat(room.calculated_area_imperial) || 0 
-              : room.calculated_area_imperial || 0;
+            // Get area using dynamic field access
+            const areaValue = room[areaField];
+            const areaSqft = typeof areaValue === 'string' 
+              ? parseFloat(areaValue) || 0 
+              : typeof areaValue === 'number' ? areaValue : 0;
               
             const areaSqm = areaSqft * 0.092903; // Convert sq ft to sq m
             const areaPct = totalArea > 0 ? Math.round((areaSqft / totalArea) * 100) : 0;
             
-            // Map room to a space type
-            const roomNameLower = room.room_name.toLowerCase();
-            let spaceType = 'Other';
+            // Get room name
+            const roomName = room[nameField] as string;
+            // Use our helper function to determine space type
+            const spaceType = getSpaceType(roomName);
             
-            if (roomNameLower.includes('kitchen') || roomNameLower.includes('reception')) {
-              spaceType = 'Kitchen';
-            } else if (roomNameLower.includes('bedroom') || roomNameLower.includes('master')) {
-              spaceType = 'Bedroom';
-            } else if (roomNameLower.includes('bath') || roomNameLower.includes('shower') || roomNameLower.includes('wc')) {
-              spaceType = 'Bathroom';
-            } else if (roomNameLower.includes('living') || roomNameLower.includes('lounge') || roomNameLower.includes('dining')) {
-              spaceType = 'Living';
-            }
+            // Get floor name using dynamic field access
+            const floorField = room.floor_name ? 'floor_name' : 
+                            room.floor ? 'floor' : 
+                            room.level ? 'level' : null;
+                             
+            const floorName = floorField ? (room[floorField] as string || 'Ground Floor') : 'Ground Floor';
             
             return {
-              floor: room.floor_name || 'Ground Floor',
+              floor: floorName,
               spaceType,
-              spaceName: room.room_name,
+              spaceName: roomName,
               areaSqftPercentage: areaPct,
               areaSqft: Math.round(areaSqft),
               areaSqm: Math.round(areaSqm * 10) / 10, // Round to 1 decimal place
@@ -266,26 +433,22 @@ const FloorplanAnalysis2 = () => {
     return result;
   };
   
-  // Helper function to map room names to space types
-  const mapRoomTypeToSpaceType = (roomName?: string): string => {
-    if (!roomName) return 'Other';
+  // Helper function to determine space type from room name
+  const getSpaceType = (roomName: string): string => {
+    const roomNameLower = roomName.toLowerCase();
     
-    const name = roomName.toLowerCase();
-    if (name.includes('living') || name.includes('lounge') || name.includes('dining') || name.includes('snug')) {
-      return 'Living';
-    } else if (name.includes('kitchen')) {
+    if (roomNameLower.includes('kitchen') || roomNameLower.includes('reception')) {
       return 'Kitchen';
-    } else if (name.includes('bedroom') || name.includes('master')) {
+    } else if (roomNameLower.includes('bedroom') || roomNameLower.includes('master')) {
       return 'Bedroom';
-    } else if (name.includes('bath') || name.includes('shower') || name.includes('wc') || name.includes('toilet')) {
+    } else if (roomNameLower.includes('bath') || roomNameLower.includes('shower') || roomNameLower.includes('wc')) {
       return 'Bathroom';
-    } else if (name.includes('stair') || name.includes('landing') || name.includes('hallway') || name.includes('corridor')) {
+    } else if (roomNameLower.includes('living') || roomNameLower.includes('lounge') || roomNameLower.includes('dining')) {
+      return 'Living';
+    } else {
       return 'Other';
     }
-    
-    return 'Other';
   };
-
 
   if (loading) {
     return <div className="flex justify-center p-8">Loading floorplan data...</div>;

@@ -72,6 +72,7 @@ interface FloorplanAnalysisData {
   floorplanMetadata: FloorplanMetadata;
   roomsData: RoomData[];
   totalsData: TotalsData;
+  allTotalsData: TotalsData[];
 }
 
 // Type for the API response
@@ -182,7 +183,8 @@ const transformApiResponseToFloorplanData = (apiResponse: ApiResponse): Floorpla
     return {
       floorplanMetadata: {} as FloorplanMetadata,
       roomsData: [],
-      totalsData: {} as TotalsData
+      totalsData: {} as TotalsData,
+      allTotalsData: []
     };
   }
 
@@ -263,8 +265,8 @@ const transformApiResponseToFloorplanData = (apiResponse: ApiResponse): Floorpla
   }
 
   // Extract totals data (Table 3)
-  const totalsData: TotalsData = {
-    area_name: 'Total Area',
+  let totalsData: TotalsData = {
+    area_name: '',
     square_meters: 0,
     square_feet: 0,
     total_floors: 0,
@@ -284,49 +286,57 @@ const transformApiResponseToFloorplanData = (apiResponse: ApiResponse): Floorpla
     output_text_tokens: 0,
   };
 
-  // Try to find totals data in the API response
+  // Get all totals data from the API response
+  let allTotalsData: TotalsData[] = [];
   if (firstFloorPlan?.all_floors_data?.total_areas_csv_data && 
-      Array.isArray(firstFloorPlan.all_floors_data.total_areas_csv_data) &&
-      firstFloorPlan.all_floors_data.total_areas_csv_data.length > 0) {
+      Array.isArray(firstFloorPlan.all_floors_data.total_areas_csv_data)) {
     
     console.log('Total areas CSV data:', firstFloorPlan.all_floors_data.total_areas_csv_data);
     
-    // Use the first item in total_areas_csv_data array
-    const totalData = firstFloorPlan.all_floors_data.total_areas_csv_data[0];
+    // Map all items in total_areas_csv_data array to our TotalsData interface
+    allTotalsData = firstFloorPlan.all_floors_data.total_areas_csv_data.map((item: any) => ({
+      area_name: item.area_name || 'Area',
+      square_meters: item.square_meters || 0,
+      square_feet: item.square_feet || 0,
+      total_floors: item.total_floors || 0,
+      total_named_rooms: item.total_named_rooms || 0,
+      total_segments: item.total_segments || 0,
+      total_points: item.total_points || 0,
+      total_objects: item.total_objects || 0,
+      total_door_objects: item.total_door_objects || 0,
+      total_window_objects: item.total_window_objects || 0,
+      total_stair_objects: item.total_stair_objects || 0,
+      list_of_objects: item.list_of_objects || '',
+      total_actual_pixels: item.total_actual_pixels || 0,
+      metric_scale: item.metric_scale || 0,
+      imperial_scale: item.imperial_scale || 0,
+      input_image_tokens: item.input_image_tokens || 0,
+      input_text_tokens: item.input_text_tokens || 0,
+      output_text_tokens: item.output_text_tokens || 0
+    }));
     
-    totalsData.area_name = totalData.area_name || 'Total Area';
-    totalsData.square_meters = totalData.square_meters || 0;
-    totalsData.square_feet = totalData.square_feet || 0;
-    totalsData.total_floors = totalData.total_floors || 0;
-    totalsData.total_named_rooms = totalData.total_named_rooms || 0;
-    totalsData.total_segments = totalData.total_segments || 0;
-    totalsData.total_points = totalData.total_points || 0;
-    totalsData.total_objects = totalData.total_objects || 0;
-    totalsData.total_door_objects = totalData.total_door_objects || 0;
-    totalsData.total_window_objects = totalData.total_window_objects || 0;
-    totalsData.total_stair_objects = totalData.total_stair_objects || 0;
-    totalsData.list_of_objects = totalData.list_of_objects || '';
-    totalsData.total_actual_pixels = totalData.total_actual_pixels || 0;
-    totalsData.metric_scale = totalData.metric_scale || 0;
-    totalsData.imperial_scale = totalData.imperial_scale || 0;
-    totalsData.input_image_tokens = totalData.input_image_tokens || 0;
-    totalsData.input_text_tokens = totalData.input_text_tokens || 0;
-    totalsData.output_text_tokens = totalData.output_text_tokens || 0;
+    // If we have data, use the first one as the main totals data
+    if (allTotalsData.length > 0) {
+      totalsData = allTotalsData[0];
+    }
   }
 
   return {
     floorplanMetadata: metadata,
     roomsData,
     totalsData,
+    allTotalsData: allTotalsData || []
   };
 };
 
 // Main component for Floorplan Analysis 2
 const FloorplanAnalysis2 = () => {
   const { id } = useParams<{ id: string }>();
-  const [floorplanData, setFloorplanData] = useState<FloorplanAnalysisData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [floorplanData, setFloorplanData] = useState<FloorplanAnalysisData>();
+  const [showImageModal, setShowImageModal] = useState<boolean>(false);
+  const [modalImage, setModalImage] = useState<string>('');
 
   useEffect(() => {
     const fetchFloorplanData = async () => {
@@ -444,8 +454,12 @@ const FloorplanAnalysis2 = () => {
               <img 
                 src={floorplanData.floorplanMetadata.image_labelme_side_by_side_url} 
                 alt="Floorplan visualization" 
-                className="max-w-full h-auto rounded-md shadow-md border border-gray-200" 
-                style={{ maxHeight: '600px' }} 
+                className="max-w-full h-auto rounded-md shadow-md border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity" 
+                style={{ maxHeight: '400px' }} 
+                onClick={() => {
+                  setModalImage(floorplanData.floorplanMetadata.image_labelme_side_by_side_url || '');
+                  setShowImageModal(true);
+                }}
               />
             </div>
           </CardContent>
@@ -582,45 +596,45 @@ const FloorplanAnalysis2 = () => {
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Total Named Rooms</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Total Segments</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Total Points</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Objects</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Door Objects</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Window Objects</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Stair Objects</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">List of Objects</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Actual Pixels</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Metric Scale</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Imperial Scale</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Input Image Tokens</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Input Text Tokens</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Output Text Tokens</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2">{floorplanData.totalsData.area_name || 'Total Area'}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.square_meters}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.square_feet}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_floors}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_named_rooms}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_segments}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_points}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_objects}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_door_objects}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_window_objects}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_stair_objects}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.list_of_objects || 'N/A'}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.total_actual_pixels}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.metric_scale}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.imperial_scale}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.input_image_tokens}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.input_text_tokens}</td>
-                  <td className="px-4 py-2">{floorplanData.totalsData.output_text_tokens}</td>
-                </tr>
+                {floorplanData.allTotalsData.map((totalItem, index) => (
+                  <tr key={index} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-2">{totalItem.area_name || 'N/A'}</td>
+                    <td className="px-4 py-2">{totalItem.square_meters}</td>
+                    <td className="px-4 py-2">{totalItem.square_feet}</td>
+                    <td className="px-4 py-2">{totalItem.total_floors}</td>
+                    <td className="px-4 py-2">{totalItem.total_named_rooms}</td>
+                    <td className="px-4 py-2">{totalItem.total_segments}</td>
+                    <td className="px-4 py-2">{totalItem.total_points}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </CardContent>
       </Card>
+      {/* Image Modal */}
+      {showImageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setShowImageModal(false)}>
+          <div className="max-w-5xl max-h-[90vh] overflow-auto">
+            <div className="relative">
+              <button 
+                onClick={() => setShowImageModal(false)} 
+                className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              >
+                <span className="text-xl font-bold">×</span>
+              </button>
+              <img 
+                src={modalImage} 
+                alt="Floorplan visualization enlarged" 
+                className="max-w-full max-h-[85vh]" 
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

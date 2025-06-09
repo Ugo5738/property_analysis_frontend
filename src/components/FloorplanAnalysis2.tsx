@@ -188,49 +188,85 @@ const transformApiResponseToFloorplanData = (apiResponse: ApiResponse): Floorpla
     };
   }
 
-  // Extract floorplan metadata (Table 1)
+  // First get the floorplan data from the nested structure
+  const firstFloorPlan = apiResponse.floor_plans?.[0];
+  console.log('First floorplan data:', firstFloorPlan);
+  
+  // Extract floorplan metadata (Table 1) - combine property-level and floorplan-level data
   const metadata: FloorplanMetadata = {
     property_id: apiResponse?.property_id || '',
     user_id: apiResponse?.user_id || '',
-    floorplan_id: apiResponse?.floorplan_id || '',
-    original_url: apiResponse?.original_url || '',
-    json_file_url: apiResponse?.json_file_url || '',
-    csv_url: apiResponse?.csv_url || '',
-    total_area_csv_url: apiResponse?.total_area_csv_url || '',
-    image_labelme_side_by_side_url: apiResponse?.image_labelme_side_by_side_url || '',
-    created_at: apiResponse?.created_at || '',
+    // Get these fields from the first floorplan
+    floorplan_id: firstFloorPlan?.floorplan_id || '',
+    original_url: firstFloorPlan?.original_url || '',
+    created_at: apiResponse?.created_at || firstFloorPlan?.created_at || '',
   };
+  
+  // Get data from all_floors_data if available
+  if (firstFloorPlan?.all_floors_data) {
+    metadata.json_file_url = firstFloorPlan.all_floors_data.json_file_url || '';
+    metadata.csv_url = firstFloorPlan.all_floors_data.csv_url || '';
+    metadata.total_area_csv_url = firstFloorPlan.all_floors_data.total_area_csv_url || '';
+    metadata.image_labelme_side_by_side_url = firstFloorPlan.all_floors_data.image_labelme_side_by_side_url || '';
+  }
 
   // Extract rooms data (Table 2)
   let roomsData: RoomData[] = [];
   
-  // Look for floor_plans data in the response
-  if (apiResponse.floor_plans && Array.isArray(apiResponse.floor_plans) && apiResponse.floor_plans.length > 0) {
-    apiResponse.floor_plans.forEach((floorPlan: any) => {
-      // Extract rooms from all possible nested structures
-      if (floorPlan.response) {
-        // First check the response field
-        roomsData = extractRoomData(floorPlan.response, roomsData);
-      }
-      
-      if (floorPlan.all_floors_data) {
-        // Then check the all_floors_data field
-        roomsData = extractRoomData(floorPlan.all_floors_data, roomsData);
-      }
-      
-      // Also check the floorPlan object itself for direct room data
-      roomsData = extractRoomData(floorPlan, roomsData);
-    });
+
+  // Extract room data from all_floors_csv_data in the first floorplan
+  if (firstFloorPlan?.all_floors_data?.all_floors_csv_data && 
+      Array.isArray(firstFloorPlan.all_floors_data.all_floors_csv_data)) {
+    
+    console.log('All floors CSV data:', firstFloorPlan.all_floors_data.all_floors_csv_data);
+    
+    // Map the all_floors_csv_data to our RoomData interface
+    roomsData = firstFloorPlan.all_floors_data.all_floors_csv_data.map((item: any) => ({
+      floor_name: item.floor_name || '',
+      room_name: item.room_name || '',
+      is_segment: item.is_segment === 'segment',
+      dimensions_imperial: item.dimensions_imperial || '',
+      dimensions_metric: item.dimensions_metric || '',
+      room_id: item.room_id || '',
+      no_of_door: item.no_of_door || 0,
+      no_of_window: item.no_of_window || 0,
+      no_of_room_points: item.no_of_room_points || 0,
+      min_x_pixels: item.min_x_pixels || 0,
+      min_y_pixels: item.min_y_pixels || 0,
+      max_x_pixels: item.max_x_pixels || 0,
+      max_y_pixels: item.max_y_pixels || 0,
+      max_area_metric: item.max_area_metric || 0,
+      max_area_imperial: item.max_area_imperial || 0,
+      max_area_pixels: item.max_area_pixels || 0,
+      actual_area_pixels: item.actual_area_pixels || 0,
+      pixel_ratio: item.pixel_ratio || 0,
+      scale_metric: item.scale_metric || 0,
+      scale_imperial: item.scale_imperial || 0,
+      calculated_sq_area_metric: item.calculated_sq_area_metric || 0,
+      calculated_area_imperial: item.calculated_area_imperial || 0,
+    }));
   }
 
-  // If there's no structured data in floor_plans, try to extract from the response directly
+  // If no room data found via direct mapping, try recursive extraction
   if (roomsData.length === 0) {
-    roomsData = extractRoomData(apiResponse, roomsData);
+    // Fall back to recursive extraction
+    if (apiResponse.floor_plans && Array.isArray(apiResponse.floor_plans)) {
+      apiResponse.floor_plans.forEach(floorPlan => {
+        if (floorPlan.response) roomsData = extractRoomData(floorPlan.response, roomsData);
+        if (floorPlan.all_floors_data) roomsData = extractRoomData(floorPlan.all_floors_data, roomsData);
+        if (floorPlan.plan_floors) roomsData = extractRoomData(floorPlan.plan_floors, roomsData);
+        roomsData = extractRoomData(floorPlan, roomsData);
+      });
+    }
+    
+    if (roomsData.length === 0) {
+      roomsData = extractRoomData(apiResponse, roomsData);
+    }
   }
 
   // Extract totals data (Table 3)
   const totalsData: TotalsData = {
-    area_name: '',
+    area_name: 'Total Area',
     square_meters: 0,
     square_feet: 0,
     total_floors: 0,
@@ -250,34 +286,34 @@ const transformApiResponseToFloorplanData = (apiResponse: ApiResponse): Floorpla
     output_text_tokens: 0,
   };
 
-  // Try different paths to find totals data
-  if (apiResponse.floor_plans && Array.isArray(apiResponse.floor_plans) && apiResponse.floor_plans.length > 0) {
-    // First check for totals in the first floorplan's all_floors_data
-    const firstFloorPlan = apiResponse.floor_plans[0];
+  // Try to find totals data in the API response
+  if (firstFloorPlan?.all_floors_data?.total_areas_csv_data && 
+      Array.isArray(firstFloorPlan.all_floors_data.total_areas_csv_data) &&
+      firstFloorPlan.all_floors_data.total_areas_csv_data.length > 0) {
     
-    if (firstFloorPlan.all_floors_data?.total_areas_csv_data) {
-      const totalData = firstFloorPlan.all_floors_data.total_areas_csv_data;
-      
-      // Map total data to our TotalsData interface
-      totalsData.area_name = totalData.name || totalData.area_name || 'Total Area';
-      totalsData.square_meters = totalData.square_meters || totalData.sq_meters || 0;
-      totalsData.square_feet = totalData.square_feet || totalData.sq_feet || 0;
-      totalsData.total_floors = totalData.total_floors || totalData.floors || 1;
-      totalsData.total_named_rooms = totalData.total_named_rooms || totalData.named_rooms || roomsData.filter(r => !r.is_segment).length;
-      totalsData.total_segments = totalData.total_segments || totalData.segments || roomsData.filter(r => r.is_segment).length;
-      totalsData.total_points = totalData.total_points || totalData.points || 0;
-      totalsData.total_objects = totalData.total_objects || totalData.objects || 0;
-      totalsData.total_door_objects = totalData.total_door_objects || totalData.doors || 0;
-      totalsData.total_window_objects = totalData.total_window_objects || totalData.windows || 0;
-      totalsData.total_stair_objects = totalData.total_stair_objects || totalData.stairs || 0;
-      totalsData.list_of_objects = totalData.list_of_objects || '';
-      totalsData.total_actual_pixels = totalData.total_actual_pixels || totalData.actual_pixels || 0;
-      totalsData.metric_scale = totalData.metric_scale || 0;
-      totalsData.imperial_scale = totalData.imperial_scale || 0;
-      totalsData.input_image_tokens = totalData.input_image_tokens || 0;
-      totalsData.input_text_tokens = totalData.input_text_tokens || 0;
-      totalsData.output_text_tokens = totalData.output_text_tokens || 0;
-    }
+    console.log('Total areas CSV data:', firstFloorPlan.all_floors_data.total_areas_csv_data);
+    
+    // Use the first item in total_areas_csv_data array
+    const totalData = firstFloorPlan.all_floors_data.total_areas_csv_data[0];
+    
+    totalsData.area_name = totalData.area_name || 'Total Area';
+    totalsData.square_meters = totalData.square_meters || 0;
+    totalsData.square_feet = totalData.square_feet || 0;
+    totalsData.total_floors = totalData.total_floors || 0;
+    totalsData.total_named_rooms = totalData.total_named_rooms || 0;
+    totalsData.total_segments = totalData.total_segments || 0;
+    totalsData.total_points = totalData.total_points || 0;
+    totalsData.total_objects = totalData.total_objects || 0;
+    totalsData.total_door_objects = totalData.total_door_objects || 0;
+    totalsData.total_window_objects = totalData.total_window_objects || 0;
+    totalsData.total_stair_objects = totalData.total_stair_objects || 0;
+    totalsData.list_of_objects = totalData.list_of_objects || '';
+    totalsData.total_actual_pixels = totalData.total_actual_pixels || 0;
+    totalsData.metric_scale = totalData.metric_scale || 0;
+    totalsData.imperial_scale = totalData.imperial_scale || 0;
+    totalsData.input_image_tokens = totalData.input_image_tokens || 0;
+    totalsData.input_text_tokens = totalData.input_text_tokens || 0;
+    totalsData.output_text_tokens = totalData.output_text_tokens || 0;
   }
 
   return {

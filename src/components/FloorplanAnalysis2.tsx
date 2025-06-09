@@ -3,23 +3,39 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import * as floorplanService from '../services/floorplanService';
 
+interface AreaData {
+  area_name: string;
+  square_feet: number;
+  square_meters: number;
+  id: number;
+  // other properties may be available but not needed for our UI
+}
+
+interface Floor {
+  id: number;
+  floor: string;
+  image_url: string;
+  csv_url: string;
+  // other properties may be available but not needed for our UI
+}
+
 interface PropertySpace {
   category: string;
-  spacePercentage: number;  // e.g., 30 for 30%
+  spacePercentage: number;
   sqft: number;
   sqm: number;
-  costSpace: number;        // or string if your backend sends e.g. "£93,363"
-  otherCost: number;        // or string
+  costSpace: string | number;
+  otherCost: string | number;
 }
 
 interface DetailedViewItem {
-  floor: string;            // e.g., "Ground Floor"
-  spaceType: string;        // e.g., "Living"
-  spaceName: string;        // e.g., "Snug"
+  floor: string;
+  spaceType: string;
+  spaceName: string;
   areaSqftPercentage: number;
   areaSqft: number;
   areaSqm: number;
-  pricePerSpace: number;    // or string
+  pricePerSpace: string | number;
 }
 
 interface FloorplanAnalysisData {
@@ -46,29 +62,91 @@ const FloorplanAnalysis2: React.FC = () => {
         
         // Transform API response into the expected format for this component
         if (response && response.floor_plans && response.floor_plans.length > 0) {
-          // Extract the floorplan analysis 2 data from the API response
-          const floorPlan = response.floor_plans[0]; // Use the first floorplan or implement logic to select the right one
+          const floorPlan = response.floor_plans[0]; // Use the first floorplan
           
-          // Build the floorplan2 data structure from the API response
-          const transformedData: FloorplanAnalysisData = {
-            propertySpaces: floorPlan.property_spaces?.map((space: any) => ({
-              category: space.category || 'Unknown',
-              spacePercentage: space.space_percentage || 0,
-              sqft: space.sqft || 0,
-              sqm: space.sqm || 0,
-              costSpace: space.cost_space || 0,
-              otherCost: space.other_cost || 0,
-            })) || [],
+          // Calculate costs based on total area data
+          const totalAreas = floorPlan.floor_plan?.total_areas_csv_data || [];
+          const totalArea = totalAreas.find((area: AreaData) => area.area_name.toLowerCase().includes('total'));
+          const totalSqFt = totalArea?.square_feet || 0;
+          
+          // Process plan floors to extract room types and measurements
+          const floors = floorPlan.plan_floors || [];
+          
+          // Create property spaces array (categories with aggregated data)
+          // For this example, we'll create them from the total areas data
+          const propertySpaces: PropertySpace[] = totalAreas
+            .filter((area: AreaData) => !area.area_name.toLowerCase().includes('total'))
+            .map((area: AreaData) => {
+              const name = area.area_name.split('=')[0].trim();
+              const sqft = area.square_feet;
+              const sqm = area.square_meters;
+              const percentage = totalSqFt > 0 ? Math.round((sqft / totalSqFt) * 100) : 0;
+              
+              return {
+                category: name,
+                spacePercentage: percentage,
+                sqft: sqft,
+                sqm: sqm,
+                costSpace: 'N/A', // We don't have cost data in the API response
+                otherCost: 'N/A'
+              };
+            });
+          
+          // Create detailed view items by combining floor data and area data
+          const detailedView: DetailedViewItem[] = [];
+          
+          // First add entries from the totalAreas data that aren't the total
+          totalAreas
+            .filter((area: AreaData) => !area.area_name.toLowerCase().includes('total'))
+            .forEach((area: AreaData) => {
+              // Parse the area name to extract more meaningful information
+              const nameParts = area.area_name.split('=');
+              const areaName = nameParts[0].trim();
+              
+              detailedView.push({
+                floor: 'All Floors', // We don't know which floor this area belongs to
+                spaceType: areaName,
+                spaceName: areaName,
+                areaSqftPercentage: totalSqFt > 0 ? Math.round((area.square_feet / totalSqFt) * 100) : 0,
+                areaSqft: area.square_feet,
+                areaSqm: area.square_meters,
+                pricePerSpace: 'N/A'
+              });
+            });
+          
+          // Then add entries for each floor
+          floors.forEach((floor: Floor) => {
+            const floorName = floor.floor.split('_').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
             
-            detailedView: floorPlan.detailed_view?.map((item: any) => ({
-              floor: item.floor || 'Unknown',
-              spaceType: item.space_type || 'Unknown',
-              spaceName: item.space_name || 'Unknown',
-              areaSqftPercentage: item.area_sqft_percentage || 0,
-              areaSqft: item.area_sqft || 0,
-              areaSqm: item.area_sqm || 0,
-              pricePerSpace: item.price_per_space || 0,
-            })) || [],
+            detailedView.push({
+              floor: floorName,
+              spaceType: 'Floor',
+              spaceName: floorName,
+              areaSqftPercentage: 0, // We don't have percentage data per floor
+              areaSqft: 0, // We don't have exact square footage for this floor
+              areaSqm: 0,
+              pricePerSpace: 'N/A'
+            });
+          });
+          
+          // If we have no detailed data at all, add the total area as a fallback
+          if (detailedView.length === 0 && totalArea) {
+            detailedView.push({
+              floor: 'All Floors',
+              spaceType: 'Entire Property',
+              spaceName: 'All Spaces',
+              areaSqftPercentage: 100,
+              areaSqft: totalArea.square_feet,
+              areaSqm: totalArea.square_meters,
+              pricePerSpace: 'N/A'
+            });
+          }
+          
+          // Build the floorplan2 data structure
+          const transformedData: FloorplanAnalysisData = {
+            propertySpaces: propertySpaces,
+            detailedView: detailedView
           };
           
           setFloorplanData(transformedData);
@@ -119,16 +197,22 @@ const FloorplanAnalysis2: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {floorplanData.propertySpaces.map((space, idx) => (
-                  <tr key={idx} className="border-b">
-                    <td className="px-4 py-2">{space.category}</td>
-                    <td className="px-4 py-2">{space.spacePercentage}%</td>
-                    <td className="px-4 py-2">{space.sqft}</td>
-                    <td className="px-4 py-2">{space.sqm}</td>
-                    <td className="px-4 py-2">{space.costSpace}</td>
-                    <td className="px-4 py-2">{space.otherCost}</td>
+                {floorplanData.propertySpaces.length > 0 ? (
+                  floorplanData.propertySpaces.map((space, idx) => (
+                    <tr key={idx} className="border-b">
+                      <td className="px-4 py-2">{space.category}</td>
+                      <td className="px-4 py-2">{space.spacePercentage}%</td>
+                      <td className="px-4 py-2">{space.sqft}</td>
+                      <td className="px-4 py-2">{space.sqm}</td>
+                      <td className="px-4 py-2">{space.costSpace}</td>
+                      <td className="px-4 py-2">{space.otherCost}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-2 text-center">No property space data available</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -155,17 +239,23 @@ const FloorplanAnalysis2: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {floorplanData.detailedView.map((item, idx) => (
-                  <tr key={idx} className="border-b">
-                    <td className="px-4 py-2">{item.floor}</td>
-                    <td className="px-4 py-2">{item.spaceType}</td>
-                    <td className="px-4 py-2">{item.spaceName}</td>
-                    <td className="px-4 py-2">{item.areaSqftPercentage}%</td>
-                    <td className="px-4 py-2">{item.areaSqft}</td>
-                    <td className="px-4 py-2">{item.areaSqm}</td>
-                    <td className="px-4 py-2">{item.pricePerSpace}</td>
+                {floorplanData.detailedView.length > 0 ? (
+                  floorplanData.detailedView.map((item, idx) => (
+                    <tr key={idx} className="border-b">
+                      <td className="px-4 py-2">{item.floor}</td>
+                      <td className="px-4 py-2">{item.spaceType}</td>
+                      <td className="px-4 py-2">{item.spaceName}</td>
+                      <td className="px-4 py-2">{item.areaSqftPercentage}%</td>
+                      <td className="px-4 py-2">{item.areaSqft}</td>
+                      <td className="px-4 py-2">{item.areaSqm}</td>
+                      <td className="px-4 py-2">{item.pricePerSpace}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-2 text-center">No detailed view data available</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

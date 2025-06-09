@@ -596,6 +596,17 @@ const FloorplanAnalysis2 = () => {
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Total Named Rooms</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Total Segments</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Total Points</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Objects</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Door Objects</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Window Objects</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Stair Objects</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">List of Objects</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Total Actual Pixels</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Metric Scale</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Imperial Scale</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Input Image Tokens</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Input Text Tokens</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500">Output Text Tokens</th>
                 </tr>
               </thead>
               <tbody>
@@ -608,6 +619,17 @@ const FloorplanAnalysis2 = () => {
                     <td className="px-4 py-2">{totalItem.total_named_rooms}</td>
                     <td className="px-4 py-2">{totalItem.total_segments}</td>
                     <td className="px-4 py-2">{totalItem.total_points}</td>
+                    <td className="px-4 py-2">{totalItem.total_objects}</td>
+                    <td className="px-4 py-2">{totalItem.total_door_objects}</td>
+                    <td className="px-4 py-2">{totalItem.total_window_objects}</td>
+                    <td className="px-4 py-2">{totalItem.total_stair_objects}</td>
+                    <td className="px-4 py-2">{totalItem.list_of_objects || 'N/A'}</td>
+                    <td className="px-4 py-2">{totalItem.total_actual_pixels}</td>
+                    <td className="px-4 py-2">{totalItem.metric_scale}</td>
+                    <td className="px-4 py-2">{totalItem.imperial_scale}</td>
+                    <td className="px-4 py-2">{totalItem.input_image_tokens}</td>
+                    <td className="px-4 py-2">{totalItem.input_text_tokens}</td>
+                    <td className="px-4 py-2">{totalItem.output_text_tokens}</td>
                   </tr>
                 ))}
               </tbody>

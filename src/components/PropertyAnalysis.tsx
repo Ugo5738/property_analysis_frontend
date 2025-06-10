@@ -16,8 +16,6 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import React, { useEffect, useState } from "react";
-import FloorplanAnalysis2 from './FloorplanAnalysis2';
-import FloorplanAnalysis3 from './FloorplanAnalysis3';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Bar,
@@ -32,6 +30,7 @@ import axiosInstance from "..//utils/axiosConfig";
 import { useAuth } from "../components/contexts/AuthContext";
 import { onMessage, removeMessageListener } from "../services/websocketServices";
 import CustomTick from './CustomTick';
+import FloorplanAnalysis2 from './FloorplanAnalysis2';
 
 interface SentimentAnalysis {
   key_phrases: string[];
@@ -1056,10 +1055,6 @@ const PropertyAnalysis: React.FC<{}> = () => {
 
 
           <TabsContent value="compare" />
-
-          <TabsContent value="floorplan3">
-            <FloorplanAnalysis3 />
-          </TabsContent>
         </Tabs>
         </div>
       </>

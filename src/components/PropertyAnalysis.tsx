@@ -744,7 +744,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Description Analysis</CardTitle>
+                  <CardTitle>Description Property Condition</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {propertyData.description_analysis?.label}

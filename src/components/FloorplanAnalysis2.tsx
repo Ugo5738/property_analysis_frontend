@@ -589,7 +589,7 @@ const FloorplanAnalysis2 = () => {
             <table className="min-w-full border-collapse table-auto">
               <thead>
                 <tr className="bg-gray-50 border-b">
-                  <th className="px-4 py-2 text-left font-medium text-gray-500">Area Name</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-500 w-48">Area Name</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Square Meters</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Square Feet</th>
                   <th className="px-4 py-2 text-left font-medium text-gray-500">Total Floors</th>
@@ -611,25 +611,31 @@ const FloorplanAnalysis2 = () => {
               </thead>
               <tbody>
                 {floorplanData.allTotalsData.map((totalItem, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="px-4 py-2">{totalItem.area_name || 'N/A'}</td>
-                    <td className="px-4 py-2">{totalItem.square_meters}</td>
-                    <td className="px-4 py-2">{totalItem.square_feet}</td>
-                    <td className="px-4 py-2">{totalItem.total_floors}</td>
-                    <td className="px-4 py-2">{totalItem.total_named_rooms}</td>
-                    <td className="px-4 py-2">{totalItem.total_segments}</td>
-                    <td className="px-4 py-2">{totalItem.total_points}</td>
-                    <td className="px-4 py-2">{totalItem.total_objects}</td>
-                    <td className="px-4 py-2">{totalItem.total_door_objects}</td>
-                    <td className="px-4 py-2">{totalItem.total_window_objects}</td>
-                    <td className="px-4 py-2">{totalItem.total_stair_objects}</td>
-                    <td className="px-4 py-2">{totalItem.list_of_objects || 'N/A'}</td>
-                    <td className="px-4 py-2">{totalItem.total_actual_pixels}</td>
-                    <td className="px-4 py-2">{totalItem.metric_scale}</td>
-                    <td className="px-4 py-2">{totalItem.imperial_scale}</td>
-                    <td className="px-4 py-2">{totalItem.input_image_tokens}</td>
-                    <td className="px-4 py-2">{totalItem.input_text_tokens}</td>
-                    <td className="px-4 py-2">{totalItem.output_text_tokens}</td>
+                  <tr key={index} className="border-b hover:bg-gray-50" style={{ height: '50px' }}>
+                    <td className="px-4 py-2 w-48 align-middle">
+                      <div className="font-medium whitespace-normal">{totalItem.area_name || 'N/A'}</div>
+                    </td>
+                    <td className="px-4 py-2 align-middle">{totalItem.square_meters}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.square_feet}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_floors}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_named_rooms}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_segments}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_points}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_objects}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_door_objects}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_window_objects}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_stair_objects}</td>
+                    <td className="px-4 py-2 align-middle overflow-hidden text-ellipsis" style={{ maxWidth: '120px' }}>
+                      <div className="truncate" title={totalItem.list_of_objects || 'N/A'}>
+                        {totalItem.list_of_objects || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 align-middle">{totalItem.total_actual_pixels}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.metric_scale}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.imperial_scale}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.input_image_tokens}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.input_text_tokens}</td>
+                    <td className="px-4 py-2 align-middle">{totalItem.output_text_tokens}</td>
                   </tr>
                 ))}
               </tbody>

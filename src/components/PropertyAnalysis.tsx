@@ -573,13 +573,7 @@ const PropertyAnalysis: React.FC<{}> = () => {
                 value="floorplan2" 
                 className="flex-1"
               >
-                Floorplan 2
-              </TabsTrigger>
-              <TabsTrigger 
-                value="floorplan3" 
-                className="flex-1"
-              >
-                Floorplan Analysis
+                Floorplan Deep Analysis
               </TabsTrigger>
               <TabsTrigger 
                 value="compare"
